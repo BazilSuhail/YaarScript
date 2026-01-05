@@ -1,96 +1,95 @@
-# Three-Address Code (TAC) Generation
+# ⚙️ Intermediate Representation Specification (TAC Generation)
 
-## Overview
-The **TAC Generator** translates high-level YaarScript (Urdu slang) into a flat, linear sequence of instructions. This Three-Address Code acts as a bridge between semantic analysis and low-level execution or optimization.
-
----
-
-## Architectural Design
-
-### 1. Operands
-The `Operand` enum represents all possible values in the IR:
-- **Temp(`usize`)**: Virtual registers (e.g., `t0`, `t1`) for intermediate results.
-- **Var(`String`)**: Named variables (e.g., `x`, `count`).
-- **Literals**: `Int`, `Float`, `Bool`, `Char`, and `String`.
-- **Label(`String`)**: Symbolic addresses for jumps.
-
-### 2. Instruction Set (Extended)
-| Instruction | Description |
-|-------------|-------------|
-| `Declare` | Registers a variable with its type and qualifiers. |
-| `Assign` | `dest = src`. |
-| `Binary` | Operations including `Plus`, `Minus`, `Mult`, `Div`, and **`Power`**. |
-| `IfTrue / IfFalse`| Conditional jumps. |
-| `Call / Param` | Function calling mechanism. |
-| **`Read`** | Reads input from standard input: `dest = READ`. |
-| **`Time`** | Gets system time: `dest = TIME`. |
-| **`Random`** | Generates random number: `dest = RANDOM(min, max)`. |
-| `Print` | Console output. |
+> [!NOTE]
+> The **TAC Generator** is the first phase of the YaarScript compiler's backend logic. It converts the validated Abstract Syntax Tree (AST) into a flat, linear **Three-Address Code (TAC)**. This lower-level IR is platform-independent and serves as the primary canvas for optimization.
 
 ---
 
-## Examples
+## 🏗️ Architecture: Standard Quadruple-like Form
 
-### 1. Power Operator (`**`)
-**Source:**
-```rust
-number result = 2 ** 10;
+YaarScript TAC adopts a **Standard Quadruple Form**, where each instruction involves at most three operands (typically two sources and one destination destination). This structure is ideal for data-flow analysis and register allocation.
+
+```mermaid
+graph TD
+    AST[AST Tree] --> Gen[TAC Generator]
+    Gen --> Register[Temp Manager]
+    Gen --> Label[Label Manager]
+    Register --> Operands[Temp1, Temp2, Temp3]
+    Label --> Jumps[Label0, Label1, Label2]
+    Gen --> Stream[Linear TAC Instruction Stream]
 ```
 
-**Generated TAC:**
+### Core IR Responsibilities
+- **Flattening**: Transforming nested expression trees (`a + b * c`) into a sequence of binary instructions.
+- **Label Generation**: Resolving complex control flow (`if-else`, `while`, `for`) into symbolic `Goto` and `IfFalse` instructions.
+- **Intrinsic Translation**: Mapping high-level syntax like `suno`, `waqt`, and `ittifaq` to specialized, protected IR instructions.
+
+---
+
+## 🛠️ IR Instruction Set & Operands
+
+### 1. Operand Specification
+YaarScript uses four distinct types of operands in its TAC:
+
+| Operand | Purpose | Internal Representation |
+| :--- | :--- | :--- |
+| **Temp** | Virtual registers for intermediate results. | `Operand::Temp(usize)` |
+| **Var** | Named variable storage from source code. | `Operand::Var(String)` |
+| **Literals** | Canonical value representation. | `Operand::Int(i64)`, `Operand::Float(f64)` |
+| **Label** | Symbolic jump targets for control flow. | `Operand::Label(String)` |
+
+### 2. The Instruction Set (Partial List)
+| Instruction | Operation | Side-Effects |
+| :--- | :--- | :--- |
+| **`Binary`** | `dest = l OP r` | None |
+| **`Unary`** | `dest = OP src` | None |
+| **`Assign`** | `dest = src` | Mutation |
+| **`Read`** | `dest = Suno()` | **Volatile (I/O)** |
+| **`Time`** | `dest = Waqt()` | **Volatile (System)** |
+| **`Random`** | `dest = Ittifaq(l, r)` | **Volatile (Entropy)** |
+| **`Print`** | `Print(src)` | **Volatile (Stdout)** |
+
+> [!IMPORTANT]
+> **Intrinsic Protecting**: Intrinsics like `READ`, `TIME`, and `RANDOM` are generated as specialized instructions rather than standard `Call` instructions. This prevents the Optimizer from inadvertently pruning them as "Side-Effect Free" code.
+
+---
+
+## 🔥 Examples & Technical Analysis
+
+### Scenario: Flattening `number x = 2 * (3 + 1);`
+The generator recursively traverses the tree, emitting independent binary instructions for each node:
 ```nginx
-number result
+t0 = 3 Plus 1
+t1 = 2 Multiply t0
+number x = t1  ; Copy to result variable
+```
+
+### Scenario: The Power Operator (`**`)
+Because exponentiation is a first-class citizen at **Precedence Level 9**, the generator emits a specialized `Power` binary instruction:
+```nginx
 t0 = 2 Power 10
-result = t0
+number result = t0
 ```
 
-### 2. Input and Randomness
-**Source:**
-```rust
-number x = suno();
-number r = ittifaq(1, x);
-bolo(r);
-```
-
-**Generated TAC:**
-```nginx
-number x
-t0 = READ
-x = t0
-number r
-t1 = RANDOM(1, x)
-r = t1
-print r
-```
-
-### 3. Loop with Urdu Slang (`dohrao`)
-**Source:**
-```rust
-dohrao (number i = 0; i < 3; i++) {
-    bolo(i);
-}
-```
-
-**Generated TAC:**
-```nginx
-number i = 0
-L0:
-t3 = i Lt 3
-ifFalse t3 goto L1
-print i
-i = i Plus 1
-goto L0
-L1:
-```
+> [!TIP]
+> The TAC generator uses a LIFO `break_stack` and `label_counter` to handle nested loops and `bas_kar` (break) logic without manual label management.
 
 ---
 
-## Implementation Details
+## 🚨 Control Flow Lowering
 
-The generator maintains several internal states:
-- **Temp counter**: Unique virtual registers.
-- **Label counter**: Unique jump targets.
-- **Break Stack**: Tracks the exit labels for `bas_kar` statements in `jabtak`, `dohrao`, and `intekhab`.
+### Example: Nested `agar-warna` (If-Else)
+```rust
+agar (x > 0) { ... } warna { ... }
+```
+**Generated TAC Logic:**
+1.  **`t0 = x Gt 0`**: Evaluate condition.
+2.  **`ifFalse t0 goto L0`**: If false, jump to the `warna` block.
+3.  **`...`**: Execute `agar` block.
+4.  **`goto L1`**: Unconditionally jump over the `warna` block.
+5.  **`L0:`**: Target for the `warna` block.
+6.  **`...`**: Execute `warna` block.
+7.  **`L1:`**: Common exit point.
 
-### Intrinsic Translation
-When the generator encounters `suno()`, `waqt()`, or `ittifaq()`, it doesn't emit a standard `Call` instruction. Instead, it emits specialized `Read`, `Time`, or `Random` TAC instructions that the execution engine handles as high-performance primitives.
+> [!CAUTION]
+> If a jump target (Label) is not emitted during the generation phase, the execution engine will crash. The generator ensures that every `goto` points to a strictly defined `Label`.

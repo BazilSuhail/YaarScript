@@ -1,79 +1,98 @@
-# Type Analyzer Documentation
+# ⚖️ Semantic Analysis Specification (The Type Checker)
 
-## Overview
-The Type Analyzer is the final semantic analysis stage of the compiler. It ensures that all operations, assignments, and function calls are performed with compatible types. It leverages the symbol table built by the `ScopeAnalyzer` to perform its checks.
-
----
-
-## Detected Errors (Slang-Compatible)
-
-### 1. **ErroneousVarDecl**
-- **Description**: Occurs when a variable is declared with an invalid type, specifically `khaali` (void).
-- **Example**: `khaali x; // ERROR: Variable cannot be khaali`
-
-### 2. **FnCallParamCount**
-- **Description**: Number of arguments in a function call does not match the declaration.
-- **Example**: 
-  ```rust
-  khaali func(number a, number b);
-  func(10); // ERROR: Arg count mismatch
-  ```
-
-### 3. **FnCallParamType**
-- **Description**: The type of an argument passed to a function does not match the parameter type.
-- **Example**: `func(10, 3.14); // ERROR: Arg 2 type mismatch (Expected number, got float)`
-
-### 4. **ErroneousReturnType**
-- **Description**: Function returns a value that doesn't match its declared return type.
-- **Example**: 
-  ```rust
-  number test() { wapsi 3.14; } // ERROR: Incorrect return type
-  ```
-
-### 5. **ExpressionTypeMismatch**
-- **Description**: General type mismatch in assignments or arithmetic between incompatible types.
-- **Example**: `number x = 3.14; // ERROR: Assignment type mismatch`
-
-### 6. **ErroneousBreak**
-- **Description**: `bas_kar` statement used outside of a `jabtak`, `dohrao`, or `intekhab` block.
-- **Example**: `yaar { bas_kar; } // ERROR`
-
-### 7. **NonBooleanCondStmt**
-- **Description**: The condition in an `agar`, `jabtak`, or `dohrao` statement is not a `faisla` (bool).
-- **Example**: `agar (10) { ... } // ERROR: Condition must be faisla`
+> [!NOTE]
+> The **Type Checker** is the second semantic analysis pass of the YaarScript compiler middle-end. It enforces the **Strict No-Implicit-Conversion Policy**, ensuring that all operations, assignments, and function calls are performed with binary-compatible types.
 
 ---
 
-## Type System Rules
+## 🏗️ Architecture: The Type Inference Engine
 
-### Strict Typing
-The compiler enforces strict type checking. There are **no implicit conversions** between types. For example, `number` and `float` cannot be added together directly.
+Our type checker takes the AST and a reference to the **Symbol Table** (ScopeFrame tree) from the Scope Analyzer. It navigates the AST and performs **bottom-up type inference**.
 
-### Numeric Types
-- Arithmetic operations (`+`, `-`, `*`, `/`, `%`, `**`) are allowed between two `number`s or two `float`s. 
-- Mixed arithmetic (e.g., `number + float`) is treated as an `ExpressionTypeMismatch`.
+```mermaid
+graph TD
+    AST[AST Tree] --> ST[Symbol Table]
+    ST --> Infer[Type Inference Engine]
+    Infer --> Relop[Relational: Returns Bool]
+    Infer --> Arith[Arithmetic: Returns Result Type]
+    Infer --> Call[Call: Returns Function Return Type]
+    Infer --> Check[Type Consistency Table]
+    Check --> Valid[Optimized AST]
+    Check --> Errors[Type Error Log]
+```
 
-### Boolean Logic
-- Logical operators only accept `faisla`.
-- Comparison operators (`==`, `!=`, `<`, `>`, `<=`, `>=`) require both operands to be of the same type and return `faisla`.
+### 1. Strict Typing Principles
+YaarScript follows a **Zero-Coercion Policy**:
+- **`number` + `float`**: **REJECTED**. You must use explicit casting (if supported) or use matching types.
+- **`agar (number)`**: **REJECTED**. The condition for an `if` block must be a `faisla` (bool).
+- **`number x = 'c'`**: **REJECTED**. Characters cannot be assigned to integers without an explicit conversion block.
 
-### Intrinsic Functions
-- `suno()`: Infers as `number`.
-- `waqt()`: Infers as `number`.
-- `ittifaq(min, max)`: Infers as `number`.
+> [!IMPORTANT]
+> This strict approach prevents high-level "magic" from obscuring low-level logic, making YaarScript an ideal platform for educational systems programming.
 
 ---
 
-## Usage
+## 🛠️ Type Verification Specifications
 
+The Checker implements 17 distinct verification points:
+
+| Verification Point | Success Condition |
+| :--- | :--- |
+| **Assignment** | `typeof(LHS) == typeof(RHS)` |
+| **Arithmetic** | Both operands are `number` OR both are `float`. |
+| **Logic (`&&`, `||`)** | Both operands are `faisla`. |
+| **Relational (`>`, `<`)** | Both operands are matching numeric types. |
+| **Function Return** | `ExpressionType == current_fn.return_type`. |
+| **Control Flow** | `ConditionType == faisla`. |
+
+### Context-Sensitive Analysis
+The checker maintains a context stack for tracking:
+- **`current_fn_return_type`**: Validates whether a `wapsi` statement actually returns the correct type.
+- **`loop_depth`**: Ensures `bas_kar` (break) is only used inside a loop or switch.
+- **`switch_depth`**: Ensures `agar_ho` (case) labels are only used within a switch scope.
+
+---
+
+## 🔥 Examples & Technical Analysis
+
+### Scenario: `number x = 10 + 3.14;`
+1.  **`10`**: Inferred as `number`.
+2.  **`3.14`**: Inferred as `float`.
+3.  **`+`**: The Additive binary check fails because `number` and `float` are not identical types.
+4. **Trigger**: `TypeErrorType::ExpressionTypeMismatch`.
+
+> [!TIP]
+> Each `FunctionDecl` must have a return statement that matches its return type. If a non-void function completes its body without a `wapsi`, the checker logs a `MissingReturnStatement` error.
+
+---
+
+## 🚨 Detailed Error Categorization
+
+1.  **ErroneousVarDecl**: Declaring a variable of type `khaali` (void). Variables must have a storage size.
+2.  **FnCallParamType**: Passing an argument that differs in type from the function prototype.
+3.  **ReturnStmtInVoid**: Using `wapsi (expr)` in a function declared as `khaali`.
+4.  **NotOnNonBool**: Using `!` on a `number`. The logical negation operator is strictly for `faisla`.
+
+> [!CAUTION]
+> If the Type Checker logs even a single error, the compilation sequence is aborted. No Three-Address Code (TAC) will be generated for a program that fails type consistency.
+
+---
+
+## 🛠️ Implementation Strategy
+
+### In-Sync Scope Syncing
+The Type Checker maintains a `scope_child_indices` stack. Since the AST traversal during type checking follows the exact same path as the Scope Analyzer's Pass 2, the checker can navigate the `ScopeFrame` tree in perfect sync, ensuring $O(1)$ symbol lookups.
 ```rust
-use compiler::semantics::type_checker::TypeChecker;
-
-// scope_analyzer.get_global_scope() provides the symbol table
-let mut type_checker = TypeChecker::new(scope_analyzer.get_global_scope());
-if let Err(errors) = type_checker.check(&ast) {
-    for err in errors {
-        eprintln!("[Type Error] {}", err.message);
+// Type Inference Implementation
+fn infer(&mut self, node: &ASTNode) -> TypeNode {
+    match node {
+        ASTNode::IntLiteral(_) => TypeNode::Builtin(TokenType::Int),
+        ASTNode::BinaryExpr(b) => {
+            let lt = self.infer(&b.left);
+            let rt = self.infer(&b.right);
+            // Validation logic...
+        }
+        // ...
     }
 }
 ```

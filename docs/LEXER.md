@@ -1,161 +1,81 @@
-# Lexer Module Documentation
+# 🔤 Lexical Analysis Specification (The Lexer)
 
-## Overview
-
-The **Lexer** (Lexical Analyzer) is the first phase of the YaarScript compiler pipeline. It transforms raw source code text into a stream of meaningful **tokens**—the fundamental building blocks that the parser uses to construct the Abstract Syntax Tree.
-
-With its uniquely flavored Urdu-slang keywords, the lexer identifies identifiers, literals, and symbols while handling whitespace and comments. It produces a linear sequence of tokens with attached position information (line and column numbers) crucial for accurate error reporting.
+> [!NOTE]
+> The **Lexer** serves as the primary lexical scanner of the YaarScript pipeline. It performs a linear transformation of raw UTF-8 source text into a prioritized stream of **Tokens**, fundamentally lowering the input into categories consumable by the Syntax Parser.
 
 ---
 
-## Architecture
+## 🏗️ Architecture & Flux
 
-### Input & Output
-```text
-┌──────────────────────────────┐
-│    Source Code (String)      │
-│  ┌────────────────────────┐  │
-│  │ number x = 10;         │  │
-│  │ float y = 3.14;        │  │
-│  │ agar (x > 5) { ... }   │  │
-│  └────────────────────────┘  │
-└──────────────────────────────┘
-              │
-              ▼
-┌──────────────────────────────┐
-│  Lexer: Character Analysis   │
-│  - Categorization            │
-│  - Token recognition         │
-│  - Slang-to-Token Mapping    │
-└──────────────────────────────┘
-              │
-              ▼
-┌──────────────────────────────┐
-│   Token Stream               │
-│  ┌────────────────────────┐  │
-│  │ Token(T_INT, "number") │  │
-│  │ Token(Ident, "x")      │  │
-│  │ Token(Assign, "=")     │  │
-│  │ Token(IntLit, "10")    │  │
-│  │ Token(Semi, ";")       │  │
-│  │ ...                    │  │
-│  │ Token(EOF, "")         │  │
-│  └────────────────────────┘  │
-└──────────────────────────────┘
+The Lexer utilizes a **Greedy Maximal-Munch Algorithm** to identify the longest possible lexeme matches. This ensures that operators like `**` are correctly identified as a single `Power` token rather than two consecutive `Multiply` tokens.
+
+```mermaid
+graph LR
+    Source[Raw .yaar Buffer] --> Stream[Byte stream]
+    Stream --> Classification{Token Classifier}
+    Classification -->|Ident/Keyword| KeywordMap[Slang Normalizer]
+    Classification -->|Numeric| NumericParser[Int/Float Divider]
+    Classification -->|Symbol| GreedyOp[Maximal Munch Op Matcher]
+    KeywordMap --> Tokens[Token Vector]
+    NumericParser --> Tokens
+    GreedyOp --> Tokens
 ```
 
-### Recognition Strategies
-
-##### Keyword & Identifier Recognition
-The Lexer distinguishes between:
-- **Urdu Slang Keywords**: `yaar`, `number`, `faisla`, `agar`, `warna`, `jabtak`, etc.
-- **Intrinsic Functions**: `bolo`, `suno`, `waqt`, `ittifaq` are lexed as specific token types.
-- **Identifiers**: User-defined names matching `[a-zA-Z_][a-zA-Z0-9_]*`.
+### Core Lexical Responsibilities
+- **Unicode Support**: Variables and identifiers allow for non-ASCII characters, whereas keywords remain pinned to the Urdu-slang specification.
+- **Position Tracking**: Each token is stamped with a precise `(Line, Column)` metadata pair, enabling Pinpoint Error Reporting in the Middle-End.
+- **Urdu Normalization**: During tokenization, literal slang values like `sahi` (True) and `galat` (False) are normalized to their canonical boolean representations within the token's value field.
 
 ---
 
-## Token System
+## 🛠️ Token Specification
 
-### TokenType Enumeration (Partial Mapping)
+### 1. Slang Keyword Normalization Table
+YaarScript maps localized Urdu slang to internal compiler primitives.
 
-| Keyword | Token Type | Purpose |
-|---------|------------|---------|
-| `number` | `T_INT` | 64-bit signed integer |
-| `float` | `T_FLOAT` | 64-bit floating-point |
-| `faisla` | `T_BOOL` | Boolean type |
-| `lafz` | `T_STRING` | String type |
-| `khaali` | `T_VOID` | Void type |
-| `agar` | `T_IF` | Conditional statement |
-| `warna` | `T_ELSE` | Alternative branch |
-| `jabtak` | `T_WHILE` | Loop statement |
-| `dohrao` | `T_FOR` | Iterative loop |
-| `intekhab` | `T_SWITCH` | Multi-way branch |
-| `yaar` | `T_MAIN` | Entry point block |
-| `pakka` | `T_CONST` | Constant qualifier |
-| `bas_kar` | `T_BREAK` | Loop/switch exit |
-| `wapsi` | `T_RETURN` | Function return |
-| `sahi` | `T_BOOLLIT` | Boolean literal true |
-| `galat` | `T_BOOLLIT` | Boolean literal false |
+| YaarScript | Purpose | Internal Primitive |
+| :--- | :--- | :--- |
+| `number` | i64 Typed Storage | `TokenType::Int` |
+| `faisla` | Binary Logic Type | `TokenType::Bool` |
+| `yaar` | Entry Point Block | `TokenType::Main` |
+| `agar` | Conditional Dispatch | `TokenType::If` |
+| `jabtak` | Loop Continuation | `TokenType::While` |
+| `bas_kar` | Control-Flow Exit | `TokenType::Break` |
+| `wapsi` | Return Expression | `TokenType::Return` |
 
-### Operators
-| Lexeme | Token Type | Operator Type |
-|--------|------------|---------------|
-| `**`   | `T_POWER`  | Multiplication (Exponentiation) |
-| `==`, `!=` | `T_EQUALOP`, `T_NE` | Equality |
-| `<`, `>` | `T_LT`, `T_GT` | Comparison |
-| `<=`, `>=` | `T_LE`, `T_GE` | Comparison |
-| `&&`, `\|\|`, `!` | `T_AND`, `T_OR`, `T_NOT` | Logical |
-| `++`, `--` | `T_INCREMENT`, `T_DECREMENT` | Unary |
-| `=` | `T_ASSIGNOP` | Assignment |
+> [!TIP]
+> The Lexer uses a `HashMap<String, TokenType>` for $O(1)$ keyword lookups once an identifier has been fully scanned.
 
----
-
-## Lexical Rules
-
-### Rule 1: Multi-Character Operators (Greedy Matching)
-The lexer uses greedy matching for multi-character sequences:
-- `*` followed by `*` → `**` (Power operator)
-- `+` followed by `+` → `++` (Increment)
-- `=` followed by `=` → `==` (Equality)
-
-### Rule 2: Floating Point Literals
-- **Format**: `[0-9]+\.[0-9]+`
-- Must have digits on both sides of the decimal point.
-- Examples: `3.14`, `0.5`, `123.000`
-
----
-
-## Examples
-
-### Example 1: Simple Variable Declaration
+### 2. The Power Operator (`**`) Detection
+The Lexer differentiates between multiplication and exponentiation through a two-character lookahead:
 ```rust
-number count = 42;
-```
-**Token Stream**:
-- `Token(T_INT, "number", line: 1, col: 1)`
-- `Token(Identifier, "count", line: 1, col: 8)`
-- `Token(T_ASSIGNOP, "=", line: 1, col: 14)`
-- `Token(T_INTLIT, "42", line: 1, col: 16)`
-- `Token(T_SEMICOLON, ";", line: 1, col: 18)`
-
-### Example 2: Control Flow with Urdu Slang
-```rust
-agar (sahi) {
-    bolo("Acha!");
-}
-```
-**Relevant Tokens**:
-- `Token(T_IF, "agar", ...)`
-- `Token(T_BOOLLIT, "true", ...)` // Normalized value
-- `Token(T_LBRACE, "{", ...)`
-- `Token(T_PRINT, "bolo", ...)`
-
-### Example 3: Exponentiation Operator
-```rust
-number result = 2 ** 8;
-```
-**Relevant Tokens**:
-- `Token(T_INTLIT, "2", ...)`
-- `Token(T_POWER, "**", ...)`
-- `Token(T_INTLIT, "8", ...)`
-
----
-
-## Implementation Details
-
-### State Variables
-```rust
-pub struct Lexer {
-    input: Vec<char>,            // Source code as character vector
-    pos: usize,                  // Byte offset
-    line: usize,                 // Line tracking
-    column: usize,               // Column tracking
-    keywords: HashMap<String, TokenType>, // Slang mapping table
+// Lexer Logic
+if self.peek() == Some('*') {
+    self.advance(); // Consume the second '*'
+    return Some(Token::new(TokenType::Power, "**", line, col));
 }
 ```
 
-### Key Methods
-- `tokenize()`: High-level loop producing the vector of tokens.
-- `next_token()`: Identifies the next logical unit from current position.
-- `try_match_operator()`: Specifically handles multi-char sequences like `**` and `==`.
-- `try_match_identifier()`: Matches words and consults the `keywords` hash-map for slang translations.
+---
+
+## 🔥 Examples & Technical Analysis
+
+### Scenario: `agar (result > 5)`
+1. **`agar`**: Scanned as an identifier. Consulting the Slang Map reveals it corresponds to `TokenType::If`.
+2. **`(`**: Recognized as a delimiter `TokenType::LeftParen`.
+3. **`result > 5`**: Scanned as `TokenType::Identifier`, `TokenType::Greater`, and `TokenType::IntLiteral`.
+
+> [!IMPORTANT]
+> **Greedy Matching** is critical for operator sequences. `++`, `--`, `==`, `!=`, and `**` are all handled through immediate peek-and-advance logic to ensure correctness in the expression tree.
+
+---
+
+## 🚨 Lexical Error Categorization
+Any character sequence that does not map to a known grammar branch triggers a `TokenType::Error`.
+
+```rust
+number $cost = 100; // ERROR: Unexpected character '$' at [1:8]
+```
+
+> [!CAUTION]
+> A lexical error represents a critical failure in the front-end. The Lexer will complete the scan to identify all possible illegal characters but will flag the session as un-parsable.

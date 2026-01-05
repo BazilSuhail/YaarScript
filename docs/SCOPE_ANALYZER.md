@@ -1,112 +1,101 @@
-# Scope Analyzer Documentation
+# 🎯 Semantic Analysis Specification (The Scope Analyzer)
 
-## Overview
-The scope analyzer is a semantic analysis module that validates symbol declarations and usage in the YaarScript compiler. It builds a symbol table and detects 11 different types of scope-related errors, now fully compatible with Urdu slang keywords.
-
----
-
-## Detected Errors
-
-### 1. **UndeclaredVariableAccessed**
-- **Description**: Variable used but never declared anywhere.
-- **Example**:
-  ```rust
-  number x = unknownVar + 5;  // ERROR: unknownVar not declared
-  ```
-
-### 2. **UndefinedFunctionCalled**
-- **Description**: Function called but never declared/defined.
-- **Example**:
-  ```rust
-  number result = nonExistentFunc(10);  // ERROR
-  ```
-
-### 3. **VariableRedefinition**
-- **Description**: Variable declared multiple times in the same scope.
-- **Example**:
-  ```rust
-  number x = 10;
-  number x = 20;  // ERROR: redefinition
-  ```
-
-### 4. **FunctionPrototypeRedefinition**
-- **Description**: Function prototype declared multiple times with identical signature.
-- **Example**:
-  ```rust
-  khaali helper(number x);
-  khaali helper(number x);  // ERROR: duplicate prototype
-  ```
-
-### 5. **ConflictingFunctionDefinition**
-- **Description**: Function defined with different signature than existing declaration.
-- **Example**:
-  ```rust
-  khaali process(number a);
-  khaali process(float a) { }  // ERROR: different parameter type
-  ```
-
-### 6. **ConflictingDeclaration**
-- **Description**: Name used for different symbol types.
-- **Example**:
-  ```rust
-  qism Color { Red };
-  number Color = 10;  // ERROR: Color is already an enum
-  ```
-
-### 7. **ParameterRedefinition**
-- **Description**: Same parameter name used twice in function.
-- **Example**:
-  ```rust
-  number func(number x, float x) { }  // ERROR: duplicate parameter
-  ```
-
-### 8. **InvalidForwardReference**
-- **Description**: Symbol referenced before declaration (within a single block).
-- **Example**:
-  ```rust
-  number x = laterVar;  // ERROR: forward reference
-  number laterVar = 10;
-  ```
-
-### 9. **InvalidStorageClassUsage**
-- **Description**: Declaration in wrong scope level (e.g., enum in non-global scope).
-- **Example**:
-  ```rust
-  yaar {
-      qism LocalEnum { A, B };  // ERROR: enums must be global
-  }
-  ```
+> [!NOTE]
+> The **Scope Analyzer** is the first semantic layer of the middle-end. It enforces lexical scoping rules, identifies symbol overlapping, and constructs a hierarchical **Symbol Table** (ScopeFrame tree) for use by the Type Checker and Tac Generator.
 
 ---
 
-## Scope Rules
+## 🏗️ Architecture: Two-Pass Analysis
 
-### Variable Scoping
-- Variables are scoped to the block they're declared in.
-- Inner scopes can shadow outer scope variables (allowed).
-- Variables must be declared before use (no forward references within blocks).
+To handle **Forward References** (where a function calls another function defined later in the source), the analyzer performs two distinct passes:
 
-### Function Scoping
-- Functions can have prototypes (forward declarations).
-- Prototypes must match definitions exactly (parameter types and count).
-- `yaar` (main block) symbols are local to the entry point.
+### Pass 1: Global Declaration Collection
+The analyzer scans all top-level `FunctionDecl`, `FunctionProto`, and `EnumDecl`.
+- **Why?**: This allows the analyzer to know about all function signatures before it begins checking the function bodies, effectively resolving the "Recursive Call" and "Mutual Recursion" problems.
 
-### Enum Scoping
-- `qism` (enums) must be declared at the global scope.
-- Enum type names and variant names are both added to the symbol table.
-- Enum variants are treated as global `number` constants.
+### Pass 2: Validation & Scope Traversal
+The analyzer traverses the AST using a **Deep-Search Strategy**:
+1. It pushes a new `ScopeFrame` onto the stack whenever entering a `{ ... }` block.
+2. It validates every `Identifier` by searching the scope stack from **Inner to Outer**.
+3. It pops the `ScopeFrame` upon exit.
+
+```mermaid
+graph TD
+    AST[AST Tree] --> P1[Pass 1: Symbol Collection]
+    P1 --> ST[Global Symbol Table]
+    ST --> P2[Pass 2: Block Validation]
+    P2 --> Hier[Hierarchical Scope Frames]
+    Hier --> Errors[Scope Error Report]
+```
 
 ---
 
-## Usage
+## 🛠️ Symbol Table Meta-Data
 
+Each symbol is represented by the `SymbolInfo` struct, containing critical metadata for the downstream middle-end:
+
+| Field | Description |
+| :--- | :--- |
+| `name` | Canonical identifier name. |
+| `line / col` | Traceability for error flagging. |
+| `is_function` | Flags usage of `()` as mandatory. |
+| `is_enum_value` | Flags the identifier as a constant literal. |
+| `is_prototype` | Indicates a signature with no body yet (proto). |
+| `params` | Vector of `(TypeNode, String)` for signature verification. |
+
+---
+
+## 🔥 Scope Constraints & Rules
+
+### 1. The Shadowing Rule
+Within a single file, an inner block can declare a variable with the same name as an outer block. This is authorized **Shadowing**.
 ```rust
-use compiler::semantics::scope::ScopeAnalyzer;
+number value = 10;
+agar (sahi) {
+    number value = 20; // AUTHORIZED: Value is 20 in this block.
+    bolo(value);
+}
+// value is 10 here.
+```
 
-let mut scope_analyzer = ScopeAnalyzer::new();
-if let Err(errors) = scope_analyzer.analyze(&ast) {
-    for error in errors {
-        eprintln!("{}", error.message);
+### 2. The Storage Class (Global vs Local)
+- **`qism` (Enums)**: Must be declared at the Global scope. Declaring an enum inside `yaar` or another function results in `InvalidStorageClassUsage`.
+- **`global`**: Declares a symbol to be shared across all function scopes.
+
+> [!IMPORTANT]
+> Variables declared inside the `yaar` block are technically **local to the entry point** and are not accessible by other functions unless passed as parameters.
+
+---
+
+## 🚨 Error Categorization
+
+YaarScript's Scope Analyzer identifies 11 distinct error types:
+
+1.  **UndeclaredVariableAccessed**: Found an identifier with no entry in the entire scope stack.
+2.  **VariableRedefinition**: Multiple variables with the same name in the **same** block.
+3.  **ConflictingFunctionDefinition**: Function body signature differs from its prototype.
+4.  **InvalidForwardReference**: Using a local variable before its declaration line (unlike global functions, local variables do not support forward references).
+
+> [!WARNING]
+> Function parameters and local variables cannot share the same name within the same function scope. This triggers a `ParameterRedefinition` error.
+
+---
+
+## 🛠️ Implementation Specs
+
+### The Scope Stack (LIFO)
+During analysis, the `ScopeAnalyzer` maintains a `Vec<ScopeFrame>`.
+```rust
+// Symbol Lookup Logic
+pub fn lookup_symbol(&self, name: &str) -> Option<&SymbolInfo> {
+    for frame in self.current_scope_stack.iter().rev() {
+        if let Some(info) = frame.symbols.get(name) {
+            return Some(info);
+        }
     }
+    None
 }
 ```
+
+> [!CAUTION]
+> If Pass 2 encounters a `SymbolNotFoundError`, the compiler halts. This prevents the Type Checker from attempting to infer types for undefined variables.

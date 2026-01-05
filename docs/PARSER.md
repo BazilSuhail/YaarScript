@@ -1,119 +1,99 @@
-# Parser Module Documentation
+# 🌳 Syntax Analysis Specification (The Parser)
 
-## Overview
-The Parser is the core of the syntax analysis phase. It takes a stream of tokens from the Lexer and constructs an **Abstract Syntax Tree (AST)**. Our compiler utilizes a **Hybrid Architectural Design**, combining the clarity of **Recursive Descent** for high-level structural constructs (like `agar`, `jabtak`, and `yaar`) with the power of **Pratt Parsing** for complex expression trees.
+> [!NOTE]
+> The **Parser** is the core of the YaarScript compiler front-end. It consumes the tokenized stream from the Lexer and constructs an **Abstract Syntax Tree (AST)** by employing a sophisticated **Hybrid Parsing Model**.
 
 ---
 
-## Architecture
+## 🏗️ Architecture: The Hybrid Model
+
+Our parser combines the strengths of two established algorithms to handle different language structures with maximum performance and readability:
 
 ### 1. High-Level Recursive Descent
-Methods like `parse_program()`, `parse_statement()`, and `parse_block()` navigate the token stream by matching expected keywords:
-- Seeing `agar` immediately triggers `parse_if_statement`.
-- Seeing `dohrao` triggers `parse_for_statement`.
+- **Usage**: Handles top-down structural elements like program-level declarations, function definitions (`FunctionDecl`), and control-oriented blocks (`agar`, `jabtak`, `dohrao`).
+- **Mechanism**: Seeing a keyword immediately triggers the corresponding `parse_X_statement` method.
+- **Why?**: Recursive Descent (RD) excels at parsing structured, non-ambiguous blocks where the next token determines the entire logic branch.
 
 ### 2. Expression Parsing via Pratt Algorithm
-For expressions where arithmetic precedence and associativity (e.g., `a + b * c ** d`) make traditional recursive descent cumbersome, we utilize **Pratt Parsing** (Top-Down Operator Precedence).
+- **Usage**: Handles all arithmetic, logical, and relational expressions (`BinaryExpr`, `UnaryExpr`, `CallExpr`).
+- **Mechanism**: Utilizes **Binding Power** (Nud/Led dispatch) instead of a fixed function-per-level hierarchy.
+- **Why?**: Pratt parsing solves the "Infinite Recursion" and "Hardcoded Precedence" issues of pure RD by using a top-down operator precedence lookahead.
 
-### 3. Operator Precedence Table
-The parser implements the following 12 precedence levels, including our high-power exponentiation operator:
-
-| Level | Precedence | Operators |
-|-------|------------|-----------|
-| 1 | Assignment | `=` |
-| 2 | Logical OR | `||` |
-| 3 | Logical AND | `&&` |
-| 4 | Equality | `==`, `!=` |
-| 5 | Comparison | `<`, `>`, `<=`, `>=` |
-| 6 | Bitwise | `&`, `|`, `^`, `<<`, `>>` |
-| 7 | Term | `+`, `-` |
-| 8 | Factor | `*`, `/`, `%` |
-| 9 | **Power** | `**` |
-| 10 | Unary | `-`, `!`, `++`, `--` (prefix) |
-| 11 | Postfix | `++`, `--` (postfix) |
-| 12 | Call | `()` |
-
----
-
-## Abstract Syntax Tree (AST)
-
-The AST is the internal representation of the program structure. 
-
-### Custom Nodes for Intrinsic Utilities:
-- `ReadExpr`: Handles the `suno()` (read standard input) syntax.
-- `TimeExpr`: Handles the `waqt()` (system time) syntax.
-- `RandomExpr`: Handles the `ittifaq(min, max)` syntax.
-
----
-
-## Examples & AST Visualization
-
-### 1. Combined Operator Precedence
-The Pratt parser respects the high precedence of the power operator.
-
-**Source:**
-```rust
-number x = 5 + 10 * 2 ** 3;
+```mermaid
+graph TD
+    Stream[Token Stream] --> Parser{Hybrid Engine}
+    Parser -->|RD Path| Structure[Program Blocks / Control Flow]
+    Parser -->|Pratt Path| Expressions[Math / Logic / Calls]
+    Structure --> AST[Abstract Syntax Tree Output]
+    Expressions --> AST
 ```
 
-**AST Representation:**
+---
+
+## 📊 Precedence & Operator Specification
+
+The YaarScript expression engine implements a 12-level precedence hierarchy. The **Power Operator (`**`)** is a first-class citizen, sitting at level 9 to ensure correct mathematical evaluation.
+
+| Level | Description | Operators | Associativity |
+| :--- | :--- | :--- | :--- |
+| **1** | Assignment | `=` | Right-to-Left |
+| **2** | Logical OR | `||` | Left-to-Right |
+| **3** | Logical AND | `&&` | Left-to-Right |
+| **4** | Equality | `==`, `!=` | Left-to-Right |
+| **5** | Relational | `<`, `>`, `<=`, `>=` | Left-to-Right |
+| **7** | Additive | `+`, `-` | Left-to-Right |
+| **8** | Multiplicative | `*`, `/`, `%` | Left-to-Right |
+| **9** | **Exponentiation** | **`**`** | **Left-to-Right** |
+| **12** | Function Call | `()` | Highest |
+
+> [!IMPORTANT]
+> Because the Power operator holds **Level 9** precedence, the expression `5 + 2 * 3 ** 2` is parsed as `5 + (2 * (3 ** 2)) = 23`.
+
+---
+
+## 🔥 AST Examples & Technical Analysis
+
+### Scenario: `number value = 10 + 2 ** 8;`
+
+The Pratt engine processes the additive expression `10 + ...` but then sees `2 ** 8`. Since `**` (9) has higher binding power than `+` (7), the power operation is nested deeper in the tree.
+
+**AST Visualization:**
 ```text
-VarDecl(number, "x")
-  BinaryExpr(+)
-    IntLiteral(5)
-    BinaryExpr(*)
-      IntLiteral(10)
-      BinaryExpr(**)
-        IntLiteral(2)
-        IntLiteral(3)
-```
-
-### 2. Control Flow (Agar-Warna)
-```rust
-agar (x > 0) {
-    bolo("Positive");
-} warna {
-    bolo("Non-positive");
-}
-```
-
-**AST Representation:**
-```text
-IfStmt
-  Condition: BinaryExpr(>)
-  IfBody: PrintStmt
-  ElseBody: PrintStmt
+VarDecl(number, "value")
+  ├─ InitExpr
+      └─ BinaryExpr(+)
+          ├─ IntLiteral(10)
+          └─ BinaryExpr(**)
+              ├─ IntLiteral(2)
+              └─ IntLiteral(8)
 ```
 
 ---
 
-## Language Grammar (EBNF Snippets)
+## 🛠️ Grammar Specification (EBNF)
 
-### Program & Declarations
 ```ebnf
 Program          ::= Declaration* MainDecl?
-VarDecl          ::= "pakka"? "number" Identifier ("=" Expression)? ";"
+Declaration      ::= VarDecl | FunctionProto | FunctionDecl | EnumDecl
+VarDecl          ::= ("pakka" | "global")? Type Identifier ("=" Expression)? ";"
 MainDecl         ::= "yaar" "{" Statement* "}"
-EnumDecl         ::= "qism" Identifier "{" Identifier ("," Identifier)* "}" ";"
-```
 
-### Control Flow
-```ebnf
+Statement        ::= IfStmt | WhileStmt | ForStmt | SwitchStmt | ReturnStmt | BreakStmt | Block | ExpressionStmt
 IfStmt           ::= "agar" "(" Expression ")" Block ("warna" Block)?
-WhileStmt        ::= "jabtak" "(" Expression ")" Block
-ForStmt          ::= "dohrao" "(" (VarDecl | ExpressionStmt | ";") (Expression)? ";" (Expression)? ")" Block
 DoWhileStmt      ::= "karo" Block "jabtak" "(" Expression ")" ";"
 ```
 
+> [!TIP]
+> Each node in our AST implements `Clone` and `Debug` for easy multi-pass semantic traversal and visualization through the `ast_printer` module.
+
 ---
 
-## Testing the Parser
-The parser is tested using comprehensive input files like `test_input.yaar`. These tests verify:
-1. **Precedence**: `a + b * c ** d` is `a + (b * (c ** d))`.
-2. **Nesting**: Deep `agar-warna` and `dohrao` structures.
-3. **Slang Accuracy**: Correct keyword-to-node mapping for Urdu slang.
+## 🚨 Syntax Error Handling
+If the parser meets a token that violates the EBNF grammar, it throws a `ParseError` with strict categorization:
 
-### Running a Test:
-```bash
-cargo run -- test_input.yaar
-```
+- **UnexpectedToken**: Found `+` when expecting an Identifier.
+- **UnclosedBlock**: Found `EOF` while still inside a `{ ... }` scope.
+- **MissingSemicolon**: Found a new declaration without terminating the previous assignment.
+
+> [!CAUTION]
+> Our front-end stops at the first encountered Parse Error to prevent Cascading Junk Errors from overwhelming the user output.
