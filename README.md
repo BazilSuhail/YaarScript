@@ -1,34 +1,79 @@
 # 🚀 YaarScript: an Urdu-Slang Multi-phase Compiler
 
 [![Online Playground](https://img.shields.io/badge/Playground-YaarScript-blue?style=for-the-badge&logo=javascript)](https://yaarscript.netlify.app/)
+[![Rust](https://img.shields.io/badge/Rust-2024_Edition-orange?style=for-the-badge&logo=rust)](https://rustup.rs/)
+[![Architecture](https://img.shields.io/badge/Architecture-Middle_End-brightgreen?style=for-the-badge)](#)
+[![Status](https://img.shields.io/badge/Status-Optimized-purple?style=for-the-badge)](#)
 
-> A sophisticated multi-phase compiler written in Rust, designed to demonstrate advanced compiler construction techniques through semantic analysis, intermediate representation optimization, and code execution—now with a uniquely fun Urdu-slang flavored syntax.
+> **YaarScript** is an educational passion project I built as a solo developer. It is a full-fledged, multi-phase compiler written in Rust, designed to demonstrate advanced compiler construction techniques—such as semantic analysis, intermediate representation optimization, and bytecode execution—while utilizing a uniquely fun, Urdu-infused slang syntax to make learning systems programming more relatable and engaging.
 
 ## 📋 Table of Contents
 
-- [Project Overview](#project-overview)
+- [Features](#features)
+- [Repository Structure](#repository-structure)
 - [Architecture & Compilation Pipeline](#architecture--compilation-pipeline)
-- [Urdu Slang Keywords & Traditional Equivalents](#urdu-slang-keywords--traditional-equivalents)
-- [Operator Precedence Table](#operator-precedence-table)
-- [Valid and Invalid Code Examples](#valid-and-invalid-code-examples)
+- [Urdu Slang Keywords](#urdu-slang-keywords)
+- [Operator Precedence](#operator-precedence)
+- [Code Examples](#code-examples)
 - [Building & Running](#building--running)
 
 ---
 
-## 🏗️ Architecture & Compilation Pipeline
+## Features
+
+YaarScript offers a rich set of capabilities designed for both educational clarity and compiler robustness:
+
+- **Urdu-Slang Localization**: Code in your native tongue using expressive keywords like `yaar` (main), `faisla` (bool), and `bolo` (print).
+- **Exponentiation Power**: Native support for the `**` operator, complete with strict mathematical associativity and high binding precedence (Precedence 9).
+- **System Intrinsics**: First-class system calls including `suno()` (read standard input), `waqt()` (UNIX timestamp), and `ittifaq(min,max)` (randomness).
+- **Strict Typing Engine**: A Zero-Coercion Policy that guarantees robust code execution by strictly validating data type consistency across all abstract syntax branches.
+- **Fixed-Point Optimizer**: A Multi-Pass Intermediate Representation (IR) engine resolving variables via Constant Folding, Value Propagation, and aggressive Dead Code Elimination (DCE).
+- **Direct Execution Backend**: Replaces sluggish interpreters by compiling logic into flat Three-Address Code (TAC) and executing the optimized instructions.
+
+---
+
+## Repository Structure
+
+The project code is organized to reflect the modular nature of a modern compiler.
+
+* **`docs/`**: Contains in-depth architectural Markdown guides for every single compiler phase (e.g., `LEXER.md`, `PARSER.md`, `IR_OPTIMIZATION.md`).
+* **`tests/`**: Contains rigorous test cases (`.yaar` files) split into categories like `type`, `scope`, and `ir-generation` to validate compiler correctness.
+* **`test_input.yaar`**: The default scratchpad file evaluated by the compiler via `cargo run`.
+* **`src/`**: The core source code of the YaarScript compiler, logically separated by semantic phases:
+
+### `src/` Architecture Overview
+| Module / File | Description & Purpose |
+| :--- | :--- |
+| 📁 **`lexer/`** | The front-end scanner. Uses Maximal-Munch logic to tokenize UTF-8 text into language primitives. |
+| 📁 **`parser/`** | The Syntax Engine. Uses a mix of Recursive Descent (control flow) and Pratt Parsing (expressions). |
+| 📁 **`core/`** | Fundamental data structures, including the AST (Abstract Syntax Tree) nodes and `Token` enums. |
+| 📁 **`semantics/`** | The Middle-End validators. Contains `scope.rs` (Symbol Table) and `type_checker.rs` (Zero-Coercion logic). |
+| 📁 **`ir_pipeline/`** | The Optimizer. Contains `tac.rs` (Three-Address Code Generation) and `tac_optimizer.rs` (Fixed-Point Convergence loop). |
+| 📁 **`codegen/`** | The Execution Engine Runtime. Interprets the generated TAC instructions and handles system intrinsics. |
+| 📄 **`error.rs`** | Centralized, formatted, compiler-wide error reporting structures. |
+| 📄 **`main.rs`** | The CLI entry point that orchestrates the file reading and the pipeline sequence. |
+| 📄 **`lib.rs`** | Public module exports. |
+
+---
+
+## Architecture & Compilation Pipeline
 
 YaarScript follows an industrial-grade multi-phase compilation architecture, lowered into an optimized linear Intermediate Representation (IR) before execution.
 
 ```mermaid
 graph TD
-    Source[test_input.yaar] --> Lexer[1. Lexical Analysis]
-    Lexer -->|Tokens| Parser[2. Syntax Analysis]
-    Parser -->|AST| Scope[3. Scope Analyzer]
-    Scope -->|Symbol Table| Type[4. Type Checker]
-    Type -->|Validated AST| TAC[5. IR Generation]
-    TAC -->|Raw TAC| Opt[6. Multi-Pass Optimizer]
-    Opt -->|Optimized TAC| Exec[7. Execution Engine]
-    Exec --> Output[Program Output]
+    classDef file fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef phase fill:#bbf,stroke:#333,stroke-width:2px;
+    classDef data fill:#dfd,stroke:#333,stroke-width:2px;
+
+    Source[test_input.yaar]:::file --> Lexer[1. Lexical Analysis<br/>Maps slang to compiler primitives<br/>Maximal-Munch Algorithm]:::phase
+    Lexer -->|Token Stream| Parser[2. Syntax Analysis<br/>Hybrid Pratt + Recursive Descent<br/>Resolves precedence & binding]:::phase
+    Parser -->|AST| Scope[3. Scope Analyzer<br/>Two-pass symbol collection<br/>LIFO stack-based resolution]:::phase
+    Scope -->|Symbol Table| Type[4. Type Checker<br/>Bottom-up type inference<br/>Strict zero-coercion constraints]:::phase
+    Type -->|Validated AST| TAC[5. IR Generation<br/>Standard Quadruple Form flattening<br/>Intrinsic instruction mapping]:::phase
+    TAC -->|Raw TAC| Opt[6. Multi-Pass Optimizer<br/>Fixed-Point Convergence loop<br/>Folding, copy-propagation, DCE]:::phase
+    Opt -->|Optimized TAC| Exec[7. Execution Engine<br/>In-memory runtime evaluation]:::phase
+    Exec --> Output[Program Output<br/>Console & Volatile IO]:::data
 ```
 
 ### 1. Lexical Analysis (Lexer)
@@ -69,7 +114,7 @@ A Fixed-Point Convergence Model applies Constant Folding, Propagation, and Dead 
 
 ---
 
-## 🌍 Urdu Slang Keywords & Traditional Equivalents
+## Urdu Slang Keywords
 
 YaarScript Maps localized terminology directly to robust systems logic.
 
@@ -97,7 +142,7 @@ YaarScript Maps localized terminology directly to robust systems logic.
 
 ---
 
-## 📊 Operator Precedence Table
+## Operator Precedence
 
 The parser natively incorporates the **Power Operator** with high precedence.
 
@@ -118,7 +163,7 @@ The parser natively incorporates the **Power Operator** with high precedence.
 
 ---
 
-## 💻 Valid and Invalid Code Examples
+## Code Examples
 
 ### ✅ Correct Code Snippet (from `tests/type/valid.yaar`)
 
@@ -187,17 +232,42 @@ yaar {
 
 ---
 
-## 🛠️ Building & Running
+## Building & Running
 
-### Prerequisites
-- [Rust & Cargo](https://rustup.rs/) (2024 Edition)
+### System Prerequisites
+To run YaarScript, you need the Rust toolchain installed.
+- [Rust Programming Language](https://www.rust-lang.org/tools/install) (2024 Edition recommended)
+- **Cargo** (Rust's built-in package manager)
 
-### Build the Compiler
+### Installation
+Clone the repository and enter the directory:
+```bash
+git clone https://github.com/your-username/yaarscript.git
+cd yaarscript
+```
+
+### Building the Compiler
+To build the compiler with maximum performance out of the Fixed-Point Optimizer, compile using the `--release` flag:
 ```bash
 cargo build --release
 ```
 
-### Run a Program
+### Running the Default Scratchpad
+We maintain a root-level `test_input.yaar` file that acts as a live scratchpad. Write your Urdu-slang code in there and execute the compiler using:
 ```bash
+cargo run
+```
+*Alternatively, specify the target file directly:*
+```bash
+cargo run -- test_input.yaar
+```
+
+### Running the Test Suites
+To verify that the type checker and semantic analyzer are functioning properly, you can test specific validation scripts from the `tests/` directory:
+```bash
+# Test a completely valid program
 cargo run -- tests/type/valid.yaar
+
+# Test the compiler's ability to catch semantic typing errors
+cargo run -- tests/type/error.yaar
 ```
