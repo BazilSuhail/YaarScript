@@ -1,0 +1,132 @@
+// ============================================
+// SCOPE VALID/ERROR FREE TEST FILE
+// Clean test program - NO SCOPE ERRORS
+// This should pass scope analysis successfully
+// ============================================
+
+qism Color {
+    Red,
+    Green,
+    Blue
+};
+
+qism Status {
+    Active,
+    Inactive,
+    Pending
+};
+
+// Global variable declarations
+number globalCounter = 0;
+float pi = 3.14159;
+
+// Function prototypes
+khaali printMessage(number code);
+number add(number a, number b);
+
+// Function definitions
+number add(number a, number b) {
+    number result = a + b;
+    wapsi result;
+}
+
+number multiply(number x, number y) {
+    wapsi x * y;
+}
+
+Color getColor(number index) {
+    agar (index == 0) {
+        wapsi Red;
+    }
+    agar (index == 1) {
+        wapsi Green;
+    }
+    wapsi Blue;
+}
+
+// Main block
+yaar {
+    number x = 42;
+    float y = 3.14;
+    Color myColor = Red;
+    
+    agar (x > 10) {
+        bolo("x is greater than 10");
+        x++;
+    } warna {
+        bolo("x is not greater than 10");
+    }
+    
+    // For loop
+    dohrao (number i = 0; i < 10; i++) {
+        bolo(i);
+        
+        agar (i == 5) {
+            bas_kar;
+        }
+    }
+    
+    // While loop
+    number counter = 0;
+    jabtak (counter < 5) {
+        bolo(counter);
+        counter++;
+    }
+    
+    // Do-while loop
+    number j = 0;
+    karo {
+        bolo(j);
+        j++;
+    } jabtak (j < 3);
+    
+    // Switch statement
+    number choice = 2;
+    intekhab (choice) {
+        agar_ho 1:
+            bolo("Choice is 1");
+            bas_kar;
+        agar_ho 2:
+            bolo("Choice is 2");
+            bas_kar;
+        aakhir:
+            bolo("Unknown choice");
+            bas_kar;
+    }
+    
+    // Function calls
+    number sum = add(10, 20);
+    number product = multiply(5, 6);
+    Color selectedColor = getColor(1);
+    
+    printMessage(0);
+}
+
+// Function implementation
+khaali printMessage(number code) {
+    agar (code == 0) {
+        bolo("Success");
+    } warna {
+        bolo("Error");
+    }
+}
+
+// Nested scopes
+khaali testNesting() {
+    number outer = 10;
+    
+    agar (outer > 5) {
+        number inner = 20;
+        bolo(inner);
+        
+        agar (inner > 15) {
+            number deepest = 30;
+            bolo(deepest);
+        }
+    }
+    
+    dohrao (number i = 0; i < 5; i++) {
+        number loopVar = i * 2;
+        bolo(loopVar);
+    }
+}

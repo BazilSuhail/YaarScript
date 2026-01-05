@@ -1,0 +1,33 @@
+yaar {
+    // 1. Constant Folding (Evaluates 10 * 2 + 5 -> 25)
+    number folding = 10 * 2 + 5; 
+
+    // 2. Constant Propagation (Replaces 'base' with 10)
+    pakka number base = 10;
+    number propagated = base + 5; 
+
+    // 3. Copy Propagation (Replaces copy2 -> copy1 -> source)
+    number source = 100;
+    number copy1 = source;
+    number copy2 = copy1;
+    number result_copy = copy2 + 10; 
+
+    // 4. Peephole Optimizations (Algebraic Identities)
+    number val = 50;
+    number p_add = val + 0;      // Should become: p_add = val
+    number p_mul = p_add * 1;    // Should become: p_mul = val
+    number p_zero = p_mul * 0;   // Should become: p_zero = 0
+    // number p_sub = val - val;    // Should become: p_sub = 0 (If current optimizer handles it)
+    number p_div = val / 1;      // Should become: p_div = val
+
+    // 5. Dead Code Elimination
+    number dead_val = 999;       // This definition should disappear entirely
+    number logic = result_copy + p_zero; // Note: p_zero becomes 0, so logic = result_copy
+
+    // 6. Redundant Jump Elimination
+    agar (folding > 0) {
+        bolo("Optimized logic reached:", logic);
+    }
+
+    bolo(logic);
+}

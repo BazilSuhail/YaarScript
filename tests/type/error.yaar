@@ -3,23 +3,23 @@
 // This file contains instances of all 17 type error types
 // ============================================
 
-enum Color { Red, Green };
+qism Color { Red, Green };
 
 // 1. ErroneousVarDecl: Variable declared as void
-void invalidVar;
+khaali invalidVar;
 
-int add(int a, int b) {
-    return a + b;
+number add(number a, number b) {
+    wapsi a + b;
 }
 
-void voidFunc() {
-    print("hello");
+khaali voidFunc() {
+    bolo("hello");
 }
 
-main {
-    int i = 10;
+yaar {
+    number i = 10;
     float f = 3.14;
-    bool b = true;
+    faisla b = sahi;
 
     // 2. FnCallParamCount: Calling 'add' (2 params) with 1 arg
     add(10);
@@ -32,15 +32,15 @@ main {
     i = 3.14;
 
     // 6. ErroneousBreak: break outside loop or switch
-    break;
+    bas_kar;
 
     // 7. NonBooleanCondStmt: if condition is int, not bool
-    if (i) {
-        print("wont work");
+    agar (i) {
+        bolo("wont work");
     }
 
     // 8. AttemptedBoolOpOnNonBools: && on integers
-    int result = 10 && 20;
+    number result = 10 && 20;
 
     // 9. AttemptedBitOpOnNonInt: & on floats
     float bitResult = f & 2.2;
@@ -54,36 +54,36 @@ main {
     // 12. ReturnStmtInVoid: Handled in a separate function below
     
     // 13. NonBooleanSwitchExpression: switch on float
-    switch (f) {
-        case 1.0: break;
+    intekhab (f) {
+        agar_ho 1.0: bas_kar;
     }
 
     // 14. InvalidCaseValueType: switch int, case char (strict check)
-    switch (i) {
-        case 'a': break; 
+    intekhab (i) {
+        agar_ho 'a': bas_kar; 
     }
 
     // 15. IncrementDecrementOnNonInt: float increment
     f++;
 
     // 16. NotOnNonBool: ! on int
-    bool notResult = !i;
+    faisla notResult = !i;
 
     // 17. AttemptedAddOpOnNonNumeric: Demo with mismatched numeric types (strict)
-    int addMismatch = i + f;
+    number addMismatch = i + f;
 }
 
 // 12. ReturnStmtInVoid
-void returningInVoid() {
-    return 10;
+khaali returningInVoid() {
+    wapsi 10;
 }
 
 // 4. ErroneousReturnType (Missing return)
-int missingReturn() {
-    print("no return statement here");
+number missingReturn() {
+    bolo("no return statement here");
 }
 
 // 4. ErroneousReturnType (Wrong return type)
-int wrongReturn() {
-    return 3.14;
+number wrongReturn() {
+    wapsi 3.14;
 }

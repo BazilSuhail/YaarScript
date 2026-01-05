@@ -5,20 +5,20 @@
 
 // --- ERROR 1: EnumRedefinition ---
 // Declaring the same enum twice
-enum Color {
+qism Color {
     Red,
     Green,
     Blue
 };
 
-enum Color {  // ERROR: Enum redefinition
+qism Color {  // ERROR: Enum redefinition
     Yellow,
     Purple
 };
 
 // --- ERROR 2: EnumVariantRedefinition ---
 // Same value name used twice in one enum
-enum Status {
+qism Status {
     Active,
     Inactive,
     Active  // ERROR: Enum variant redefinition
@@ -26,8 +26,8 @@ enum Status {
 
 // --- ERROR 3: InvalidStorageClassUsage ---
 // Enum declared in non-global scope (inside function)
-main {
-    enum LocalEnum {  // ERROR: Invalid storage class usage (enums must be global)
+yaar {
+    qism LocalEnum {  // ERROR: Invalid storage class usage (enums must be global)
         Value1,
         Value2
     };
@@ -35,126 +35,126 @@ main {
 
 // --- ERROR 4: ConflictingDeclaration ---
 // Variable name conflicts with enum name
-enum Size {
+qism Size {
     Small,
     Large
 };
 
-int Size = 10;  // ERROR: Conflicting declaration (Size is already an enum)
+number Size = 10;  // ERROR: Conflicting declaration (Size is already an enum)
 
 // --- ERROR 5: ConflictingDeclaration (enum value conflict) ---
 // Variable name conflicts with enum value
-int Red = 5;  // ERROR: Conflicting declaration (Red is an enum value from Color)
+number Red = 5;  // ERROR: Conflicting declaration (Red is an enum value from Color)
 
 // --- ERROR 6: VariableRedefinition ---
 // Variable declared twice in same scope
-int testVar = 10;
-int testVar = 20;  // ERROR: Variable redefinition
+number testVar = 10;
+number testVar = 20;  // ERROR: Variable redefinition
 
 // --- ERROR 7: FunctionPrototypeRedefinition ---
 // Same function prototype declared multiple times
-void helper(int x);
-void helper(int x);  // ERROR: Function prototype redefinition
+khaali helper(number x);
+khaali helper(number x);  // ERROR: Function prototype redefinition
 
 // --- ERROR 8: ConflictingFunctionDefinition ---
 // Function defined with different signature than prototype
-void process(int a);
+khaali process(number a);
 
-void process(float a) {  // ERROR: Conflicting function definition (different parameter type)
-    print(a);
+khaali process(float a) {  // ERROR: Conflicting function definition (different parameter type)
+    bolo(a);
 }
 
 // --- ERROR 9: ConflictingFunctionDefinition (return type) ---
 // Function with same name but different return type
-int calculate(int x) {
-    return x * 2;
+number calculate(number x) {
+    wapsi x * 2;
 }
 
-float calculate(int x) {  // ERROR: Conflicting function definition (different return type)
-    return x * 2.5;
+float calculate(number x) {  // ERROR: Conflicting function definition (different return type)
+    wapsi x * 2.5;
 }
 
 // --- ERROR 10: ParameterRedefinition ---
 // Same parameter name used twice in function
-int duplicate(int x, float x) {  // ERROR: Parameter redefinition
-    return x;
+number duplicate(number x, float x) {  // ERROR: Parameter redefinition
+    wapsi x;
 }
 
 // --- ERROR 11: UndeclaredVariableAccessed ---
 // Using variable that was never declared
-int useUndeclared() {
-    return unknownVar + 5;  // ERROR: Undeclared variable accessed
+number useUndeclared() {
+    wapsi unknownVar + 5;  // ERROR: Undeclared variable accessed
 }
 
 // --- ERROR 12: UndefinedFunctionCalled ---
 // Calling function that doesn't exist
-main {
-    int result = nonExistentFunc(10);  // ERROR: Undefined function called
+yaar {
+    number result = nonExistentFunc(10);  // ERROR: Undefined function called
 }
 
 // --- ERROR 13: InvalidForwardReference ---
 // Using variable before it's declared (but it exists later)
-int earlyUser() {
-    return laterDeclared;  // ERROR: Invalid forward reference
+number earlyUser() {
+    wapsi laterDeclared;  // ERROR: Invalid forward reference
 }
 
-int laterDeclared = 100;
+number laterDeclared = 100;
 
 // --- ERROR 14: InvalidForwardReference (function) ---
 // Calling function before declaration (without prototype)
-int caller() {
-    return callee();  // ERROR: Invalid forward reference
+number caller() {
+    wapsi callee();  // ERROR: Invalid forward reference
 }
 
-int callee() {
-    return 42;
+number callee() {
+    wapsi 42;
 }
 
 // --- ERROR 15: ConflictingDeclaration (variable vs function) ---
 // Variable name conflicts with function name
-void myFunc() {
-    print("Hello");
+khaali myFunc() {
+    bolo("Hello");
 }
 
-int myFunc = 5;  // ERROR: Conflicting declaration
+number myFunc = 5;  // ERROR: Conflicting declaration
 
 // --- CORRECT EXAMPLES (for comparison) ---
 
 // Correct: Function prototype followed by definition
-void correctFunc(int x);
+khaali correctFunc(number x);
 
-void correctFunc(int x) {
-    print(x);
+khaali correctFunc(number i) {
+    bolo(i);
 }
 
 // Correct: Using declared variables
-int validVar = 10;
+number validVar = 10;
 
-int useValidVar() {
-    return validVar + 5;  // OK: validVar is declared
+number useValidVar() {
+    wapsi validVar + 5;  // OK: validVar is declared
 }
 
 // Correct: Enum values can be used as variables
-enum Direction {
+qism Direction {
     North,
     South,
     East,
     West
 };
 
-int useEnumValue() {
-    int dir = North;  // OK: North is an enum value
-    return dir;
+number useEnumValue() {
+    number dir = North;  // OK: North is an enum value
+    wapsi dir;
 }
 
 // Correct: Nested scopes with same variable name (shadowing is allowed)
-int outer = 10;
+number outer = 10;
 
-void testScoping() {
-    int inner = 20;
+khaali testScoping() {
+    number inner = 20;
     
-    if (inner > 0) {
-        int inner = 30;  // OK: Different scope, shadows outer 'inner'
-        print(inner);
+    agar (inner > 0) {
+        number inner = 30;  // OK: Different scope, shadows outer 'inner'
+        bolo(inner);
     }
 }
