@@ -13,32 +13,56 @@ impl Lexer {
     pub fn new(source: String) -> Self {
         let mut keywords = HashMap::new();
         keywords.insert("int".to_string(), TokenType::Int);
+        keywords.insert("number".to_string(), TokenType::Int);
         keywords.insert("float".to_string(), TokenType::Float);
         keywords.insert("double".to_string(), TokenType::Double);
         keywords.insert("char".to_string(), TokenType::Char);
         keywords.insert("void".to_string(), TokenType::Void);
+        keywords.insert("khaali".to_string(), TokenType::Void);
         keywords.insert("bool".to_string(), TokenType::Bool);
+        keywords.insert("faisla".to_string(), TokenType::Bool);
         keywords.insert("enum".to_string(), TokenType::Enum);
+        keywords.insert("qism".to_string(), TokenType::Enum);
         keywords.insert("true".to_string(), TokenType::BoolLit);
+        keywords.insert("sahi".to_string(), TokenType::BoolLit);
         keywords.insert("false".to_string(), TokenType::BoolLit);
+        keywords.insert("galat".to_string(), TokenType::BoolLit);
         keywords.insert("if".to_string(), TokenType::If);
+        keywords.insert("agar".to_string(), TokenType::If);
         keywords.insert("else".to_string(), TokenType::Else);
+        keywords.insert("warna".to_string(), TokenType::Else);
         keywords.insert("while".to_string(), TokenType::While);
+        keywords.insert("jabtak".to_string(), TokenType::While);
         keywords.insert("return".to_string(), TokenType::Return);
+        keywords.insert("wapsi".to_string(), TokenType::Return);
         keywords.insert("print".to_string(), TokenType::Print);
+        keywords.insert("bolo".to_string(), TokenType::Print);
         keywords.insert("main".to_string(), TokenType::Main);
+        keywords.insert("yaar".to_string(), TokenType::Main);
         keywords.insert("string".to_string(), TokenType::String);
+        keywords.insert("lafz".to_string(), TokenType::String);
         keywords.insert("do".to_string(), TokenType::Do);
+        keywords.insert("karo".to_string(), TokenType::Do);
         keywords.insert("switch".to_string(), TokenType::Switch);
+        keywords.insert("intekhab".to_string(), TokenType::Switch);
         keywords.insert("include".to_string(), TokenType::Include);
+        keywords.insert("mangwao".to_string(), TokenType::Include);
         keywords.insert("const".to_string(), TokenType::Const);
+        keywords.insert("pakka".to_string(), TokenType::Const);
         keywords.insert("break".to_string(), TokenType::Break);
+        keywords.insert("bas_kar".to_string(), TokenType::Break);
         keywords.insert("for".to_string(), TokenType::For);
+        keywords.insert("dohrao".to_string(), TokenType::For);
         keywords.insert("default".to_string(), TokenType::Default);
+        keywords.insert("aakhir".to_string(), TokenType::Default);
         keywords.insert("case".to_string(), TokenType::Case);
+        keywords.insert("agar_ho".to_string(), TokenType::Case);
         keywords.insert("read".to_string(), TokenType::Read);
+        keywords.insert("suno".to_string(), TokenType::Read);
         keywords.insert("time".to_string(), TokenType::Time);
+        keywords.insert("waqt".to_string(), TokenType::Time);
         keywords.insert("random".to_string(), TokenType::Random);
+        keywords.insert("ittifaq".to_string(), TokenType::Random);
 
         Lexer {
             input: source.chars().collect(),

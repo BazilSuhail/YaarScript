@@ -13,8 +13,8 @@ use compiler::error::ErrorReporter;
 use std::fs;
 
 fn main() {
-    let source = fs::read_to_string("test_input.txt") 
-        .expect("failed to read test_input.txt");
+    let source = fs::read_to_string("test_input.yaar") 
+        .expect("failed to read test_input.yaar");
     
     let reporter = ErrorReporter::new(&source);
     

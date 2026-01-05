@@ -377,7 +377,7 @@ impl Parser {
     fn parse_bool_literal(&mut self) -> Result<ASTNode, ParseError> {
         let token = self.advance();
         Ok(ASTNode::BoolLiteral(BoolLiteral {
-            value: token.value == "true",
+            value: token.value == "true" || token.value == "sahi",
             line: token.line,
             column: token.column,
         }))

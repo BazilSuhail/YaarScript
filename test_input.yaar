@@ -1,0 +1,83 @@
+qism Color { RED, GREEN, BLUE };
+
+pakka number TARGET = 5;
+
+// Function to print a separator line
+khaali print_separator(number count) {
+
+    bolo("\n");
+    dohrao (number i = 0; i < TARGET; i++) {
+        bolo("=");
+    }
+    bolo("\n");
+}
+
+yaar {
+    // Example of the new features:
+    bolo("Enter Number: ");
+
+    number base = suno();
+    number power = 3;
+    bolo("Power for ", base, " is ", base ** power);
+
+    number start = waqt();
+    bolo("\n", ittifaq(1, 100));
+    number end = waqt();
+    bolo("\nTime taken: ", end - start);
+
+    bolo("--- 🚀 THE ULTIMATE LANGUAGE POWER TEST ---\n");
+
+    // 1. The Numerical Diamond (Nested For Loops)
+    number size = 5 ;
+    bolo("\n[1] Generating Numeric Diamond:\n");
+    
+    // Top Half
+    dohrao (number i = 1; i <= size; i++) {
+        dohrao (number s = 1; s <= (size - i); s++) { bolo(" "); }
+        dohrao (number j = 1; j <= i; j++) { 
+            bolo(" ");
+            bolo(i); 
+         }
+        bolo("\n");
+    }
+    // Bottom Half
+    dohrao (number i = (size - 1); i >= 1; i--) {
+        dohrao (number s = 1; s <= (size - i); s++) { bolo(" "); }
+        dohrao (number j = 1; j <= i; j++) {
+            bolo(" ");
+            bolo(i); 
+         }
+        bolo("\n");
+    }
+
+    print_separator(40);
+
+    // 2. Karo-Jabtak Loop (Diagnostics)
+    bolo("[2] Running Sensor Calibration:\n");
+    number attempt = 1;
+    faisla sensor_ready = galat;
+
+    karo {
+        bolo("Probe #", attempt, ":\t");
+        agar (attempt < 10) {
+            bolo("Warming up...\t[WAIT...]\n");
+        } warna {
+            bolo("Calibration Complete!\t[READY]\n");
+            sensor_ready = sahi;
+        }
+        attempt = attempt + 1;
+    } jabtak (!sensor_ready);
+
+    print_separator(40);
+
+    // 3. Qism & Intekhab Implementation
+    bolo("[3] System Final Status:\n");
+    number status_color = GREEN;
+    
+    intekhab (status_color) {
+        agar_ho RED:   
+        bolo("SYSTEM FATAL (RED)\n"); bas_kar;
+        agar_ho GREEN: bolo("SYSTEM OPTIMAL (GREEN)\n"); bas_kar;
+        agar_ho BLUE:  bolo("SYSTEM RECOVERY (BLUE)\n"); bas_kar;
+    }
+}
