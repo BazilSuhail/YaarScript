@@ -78,7 +78,6 @@ pub struct VarDecl {
     pub initializer: Option<Box<ASTNode>>,
     // The flags tell the compiler/semantic analysis how to treat the variable:
     pub is_const: bool,
-    pub is_global: bool,
     pub line: usize,
     pub column: usize,
 }

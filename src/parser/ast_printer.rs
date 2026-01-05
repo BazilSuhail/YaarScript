@@ -73,9 +73,6 @@ pub fn print_ast_node(node: &ASTNode, indent: usize) {
             if n.is_const {
                 modifiers.push_str("const ");
             }
-            if n.is_global {
-                modifiers.push_str("global ");
-            }
             println!("{}{}{}VarDecl({}{}{}\"{}\")){}", 
                 spacing, BOLD, CYAN, modifiers, type_node_to_string(&n.var_type), ", ", n.name, RESET);
             if let Some(init) = &n.initializer {

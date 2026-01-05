@@ -465,8 +465,8 @@ impl Parser {
             return self.parse_enum_declaration();
         }
 
-        // Check for const or global modifiers
-        if token_type == TokenType::Const || token_type == TokenType::Global {
+        // Check for const modifiers
+        if token_type == TokenType::Const {
             return self.parse_variable_declaration();
         }
 
@@ -532,12 +532,9 @@ impl Parser {
 
     fn parse_variable_declaration(&mut self) -> Result<ASTNode, ParseError> {
         let mut is_const = false;
-        let mut is_global = false;
 
         if self.match_token(TokenType::Const) {
             is_const = true; // record that this variable is const
-        } else if self.match_token(TokenType::Global) {
-            is_global = true; // record that this variable is global
         }
 
         // let type_token = self.advance();
@@ -565,7 +562,6 @@ impl Parser {
             name: ident_token.value,
             initializer,
             is_const,
-            is_global,
             line: ident_token.line,
             column: ident_token.column,
         }))
@@ -737,7 +733,6 @@ impl Parser {
                 name: name_token.value,
                 initializer: Some(Box::new(value)),
                 is_const: false,
-                is_global: false,
                 line: name_token.line,
                 column: name_token.column,
             })))
@@ -926,7 +921,7 @@ impl Parser {
                 TokenType::Main => self.parse_main_declaration()?,
                 TokenType::Print => self.parse_print_statement()?,
                 TokenType::Enum => self.parse_enum_declaration()?,
-                TokenType::Const | TokenType::Global => self.parse_variable_declaration()?,
+                TokenType::Const => self.parse_variable_declaration()?,
                 _ if self.is_type_token(token_type) => self.parse_type_declaration()?,
                 TokenType::Identifier => {
                     // Check if this is a user-defined type declaration

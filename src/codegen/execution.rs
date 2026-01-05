@@ -209,16 +209,12 @@ impl ExecutionEngine {
         while pc < self.instructions.len() {
             // Using a reference avoids copying at every step
             match &self.instructions[pc] {
-                Instruction::Declare(type_str, name, init) => {
+                Instruction::Declare(_type_str, name, init) => {
                     let val = match init {
                         Some(op) => state.resolve(op)?,
                         None => Value::Int(0),
                     };
-                    if type_str.contains("global") {
-                        state.global_vars.insert(name.clone(), val);
-                    } else {
-                        state.stack.last_mut().unwrap().insert(name.clone(), val);
-                    }
+                    state.stack.last_mut().unwrap().insert(name.clone(), val);
                 }
 
                 Instruction::Assign(dest, src) => {

@@ -32,7 +32,6 @@ impl Lexer {
         keywords.insert("switch".to_string(), TokenType::Switch);
         keywords.insert("include".to_string(), TokenType::Include);
         keywords.insert("const".to_string(), TokenType::Const);
-        keywords.insert("global".to_string(), TokenType::Global);
         keywords.insert("break".to_string(), TokenType::Break);
         keywords.insert("for".to_string(), TokenType::For);
         keywords.insert("default".to_string(), TokenType::Default);
