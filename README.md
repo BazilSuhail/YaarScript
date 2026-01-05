@@ -5,7 +5,7 @@
 [![Architecture](https://img.shields.io/badge/Architecture-Middle_End-brightgreen?style=for-the-badge)](#)
 [![Status](https://img.shields.io/badge/Status-Optimized-purple?style=for-the-badge)](#)
 
-> **YaarScript** is an educational passion project I built as a solo developer. It is a full-fledged, multi-phase compiler written in Rust, designed to demonstrate advanced compiler construction techniques—such as semantic analysis, intermediate representation optimization, and bytecode execution—while utilizing a uniquely fun, Urdu-infused slang syntax to make learning systems programming more relatable and engaging.
+> **YaarScript** is an educational passion project I built as a solo developer. It is a full-fledged, multi-phase compiler written in Rust, designed to demonstrate advanced compiler construction techniques, such as semantic analysis, intermediate representation optimization, and bytecode execution, while utilizing a uniquely fun, Urdu-infused slang syntax to make learning systems programming more relatable and engaging.
 
 ## 📋 Table of Contents
 
@@ -77,7 +77,7 @@ graph TD
     Exec --> Output[Program Output<br/>Console & Volatile IO]:::data
 ```
 
-The transformation process begins with **Lexical Analysis**, which uses a greedy Maximal-Munch algorithm to map raw source text (including Urdu slang) into prioritized compiler primitives. This token stream is processed by the **Parser** via a Hybrid Model—combining Recursive Descent with Pratt Parsing’s Nud/Led dispatch—to build a structured **Abstract Syntax Tree (AST)**. 
+The transformation process begins with **Lexical Analysis**, which uses a greedy Maximal-Munch algorithm to map raw source text (including Urdu slang) into prioritized compiler primitives. This token stream is processed by the **Parser** via a Hybrid Model, combining Recursive Descent with Pratt Parsing’s Nud/Led dispatch, to build a structured **Abstract Syntax Tree (AST)**. 
 
 During **Semantic Analysis**, the **Scope Analyzer** performs Two-Pass Symbol Collection using a LIFO stack to enforce lexical scoping, while the **Type Checker** applies a strict Zero-Coercion Policy to ensure binary compatibility across the tree. The validated AST is then lowered by the **TAC Generator** into **Three-Address Code (TAC)** in Standard Quadruple Form. Finally, the **IR Optimizer** achieves efficiency through a Fixed-Point Convergence Model, applying constant folding and Mark-and-Sweep dead code elimination.
 

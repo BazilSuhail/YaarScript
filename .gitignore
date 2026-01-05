@@ -18,7 +18,15 @@ Cargo.lock
 
 # But allow all txt files inside tests/ and its subfolders
 !tests/**/*.txt
+# Ignore all executable files in any directory
+**/*.exe
 
+# Specifically ignore Rust build artifacts
+/target/
+
+# If you generate temporary IR or TAC logs
+*.log
+*.tmp
 
 optimal-three-address-code.txt
 three-address-code.txt
