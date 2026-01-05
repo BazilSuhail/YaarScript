@@ -57,6 +57,19 @@ pub fn print_ast_node(node: &ASTNode, indent: usize) {
             }
             print_ast_node(&n.operand, indent + 2);
         }
+        ASTNode::ReadExpr(_) => {
+            println!("{}{}{}ReadExpr(){}", spacing, BOLD, BLUE, RESET);
+        }
+        ASTNode::TimeExpr(_) => {
+            println!("{}{}{}TimeExpr(){}", spacing, BOLD, BLUE, RESET);
+        }
+        ASTNode::RandomExpr(n) => {
+            println!("{}{}{}RandomExpr{}", spacing, BOLD, BLUE, RESET);
+            println!("{}  Min:", spacing);
+            print_ast_node(&n.min, indent + 4);
+            println!("{}  Max:", spacing);
+            print_ast_node(&n.max, indent + 4);
+        }
         ASTNode::CallExpr(n) => {
             println!("{}{}{}CallExpr{}", spacing, BOLD, BLUE, RESET);
             println!("{}  Callee:", spacing);
@@ -265,6 +278,7 @@ fn token_type_to_op(token_type: &TokenType) -> &'static str {
         TokenType::BitXor => "^",
         TokenType::BitLShift => "<<",
         TokenType::BitRShift => ">>",
+        TokenType::Power => "**",
         _ => "unknown_op",
     }
 }

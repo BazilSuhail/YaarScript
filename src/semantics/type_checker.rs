@@ -135,6 +135,7 @@ impl<'a> TypeChecker<'a> {
             ASTNode::CallExpr(c) => if let ASTNode::Identifier(i) = c.callee.as_ref() {
                 self.lookup_symbol(&i.name).map(|s| s.symbol_type.clone()).unwrap_or(TypeNode::Builtin(TokenType::Error))
             } else { TypeNode::Builtin(TokenType::Error) },
+            ASTNode::ReadExpr(_) | ASTNode::TimeExpr(_) | ASTNode::RandomExpr(_) => TypeNode::Builtin(TokenType::Int),
             _ => TypeNode::Builtin(TokenType::Error),
         }
     }
@@ -272,7 +273,7 @@ impl<'a> TypeChecker<'a> {
                     TokenType::BitLShift | TokenType::BitRShift => if !self.are_types_equal(&lt, &TypeNode::Builtin(TokenType::Int)) || !self.are_types_equal(&rt, &TypeNode::Builtin(TokenType::Int)) {
                         self.add_error(TypeErrorType::AttemptedShiftOnNonInt, b.line, b.column, "Shift op on non-int".into());
                     }
-                    TokenType::Plus | TokenType::Minus | TokenType::Multiply | TokenType::Divide | TokenType::Modulo => {
+                    TokenType::Plus | TokenType::Minus | TokenType::Multiply | TokenType::Divide | TokenType::Modulo | TokenType::Power => {
                         if !self.is_numeric(&lt) || !self.is_numeric(&rt) { self.add_error(TypeErrorType::AttemptedAddOpOnNonNumeric, b.line, b.column, "Arithmetic on non-numeric".into()); }
                         else if !self.are_types_equal(&lt, &rt) { self.add_error(TypeErrorType::ExpressionTypeMismatch, b.line, b.column, "Arithmetic type mismatch".into()); }
                     }
@@ -303,6 +304,14 @@ impl<'a> TypeChecker<'a> {
                             if !self.are_types_compatible(&self.infer(arg), &s.params[i].0) { self.add_error(TypeErrorType::FnCallParamType, c.line, c.column, format!("Arg {} type mismatch", i+1)); }
                         }
                     }
+                }
+            }
+            ASTNode::RandomExpr(r) => {
+                self.check_expr(&r.min);
+                self.check_expr(&r.max);
+                if !self.are_types_equal(&self.infer(&r.min), &TypeNode::Builtin(TokenType::Int)) ||
+                   !self.are_types_equal(&self.infer(&r.max), &TypeNode::Builtin(TokenType::Int)) {
+                    self.add_error(TypeErrorType::ExpressionTypeMismatch, r.line, r.column, "Random arguments must be integers".into());
                 }
             }
             _ => {}

@@ -2,6 +2,9 @@ use crate::ir_pipeline::tac::{Instruction, Operand};
 use crate::core::token::TokenType;
 use std::collections::HashMap;
 use std::fmt;
+use std::io;
+use std::time::{SystemTime, UNIX_EPOCH};
+use rand::Rng;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
@@ -299,7 +302,30 @@ impl ExecutionEngine {
                 }
 
                 Instruction::FuncEnd => return Ok(Value::Unit),
-
+                
+                Instruction::Read(dest) => {
+                    let mut input = String::new();
+                    io::stdin().read_line(&mut input).map_err(|e| RuntimeError::Other(e.to_string()))?;
+                    let val = input.trim().parse::<i64>().unwrap_or(0);
+                    state.store(dest, Value::Int(val))?;
+                }
+                
+                Instruction::Time(dest) => {
+                    let now = SystemTime::now().duration_since(UNIX_EPOCH).map_err(|e| RuntimeError::Other(e.to_string()))?.as_secs();
+                    state.store(dest, Value::Int(now as i64))?;
+                }
+                
+                Instruction::Random(dest, min, max) => {
+                    let lower = match state.resolve(min)? { Value::Int(i) => i, _ => 0 };
+                    let upper = match state.resolve(max)? { Value::Int(i) => i, _ => 100 };
+                    if lower > upper {
+                        state.store(dest, Value::Int(0))?;
+                    } else {
+                        let mut rng = rand::thread_rng();
+                        let val = rng.gen_range(lower..=upper);
+                        state.store(dest, Value::Int(val))?;
+                    }
+                }
                 _ => {}
             }
             pc += 1;
@@ -321,6 +347,10 @@ impl ExecutionEngine {
                 TokenType::Gt => Ok(Value::Bool(a > b)),
                 TokenType::Le => Ok(Value::Bool(a <= b)),
                 TokenType::Ge => Ok(Value::Bool(a >= b)),
+                TokenType::Power => {
+                    if b < 0 { Ok(Value::Int(0)) }
+                    else { Ok(Value::Int(a.pow(b as u32))) }
+                }
                 TokenType::AssignOp => Ok(Value::Int(b)),
                 _ => Err(RuntimeError::TypeMismatch(format!("Invalid int op {:?}", op))),
             },
@@ -329,6 +359,7 @@ impl ExecutionEngine {
                 TokenType::Minus => Ok(Value::Float(a - b)),
                 TokenType::Multiply => Ok(Value::Float(a * b)),
                 TokenType::Divide => Ok(Value::Float(a / b)),
+                TokenType::Power => Ok(Value::Float(a.powf(b))),
                 TokenType::EqualOp => Ok(Value::Bool(a == b)),
                 _ => Err(RuntimeError::TypeMismatch(format!("Invalid float op {:?}", op))),
             },

@@ -14,7 +14,7 @@ pub enum TokenType {
 
     // Operators
     AssignOp, EqualOp, Ne, Lt, Gt, Le, Ge,
-    Plus, Minus, Multiply, Divide, Modulo,
+    Plus, Minus, Multiply, Divide, Modulo, Power,
     Increment, Decrement,
     And, Or, Not,
 
@@ -22,7 +22,7 @@ pub enum TokenType {
     BitAnd, BitOr, BitXor, BitLShift, BitRShift,
 
     // Keywords
-    If, Else, While, Return, Print, Main, Include, Const,
+    If, Else, While, Return, Print, Main, Include, Const, Read, Time, Random,
 
     // New keywords
     String, Do, Switch, Break, For, Default, Case, Colon,
@@ -77,6 +77,7 @@ impl fmt::Display for TokenType {
             TokenType::Multiply => "T_MULTIPLY",
             TokenType::Divide => "T_DIVIDE",
             TokenType::Modulo => "T_MODULO",
+            TokenType::Power => "T_POWER",
             TokenType::Increment => "T_INCREMENT",
             TokenType::Decrement => "T_DECREMENT",
             TokenType::And => "T_AND",
@@ -95,6 +96,9 @@ impl fmt::Display for TokenType {
             TokenType::Main => "T_MAIN",
             TokenType::Include => "T_INCLUDE",
             TokenType::Const => "T_CONST",
+            TokenType::Read => "T_READ",
+            TokenType::Time => "T_TIME",
+            TokenType::Random => "T_RANDOM",
             TokenType::String => "T_STRING",
             TokenType::Do => "T_DO",
             TokenType::Switch => "T_SWITCH",

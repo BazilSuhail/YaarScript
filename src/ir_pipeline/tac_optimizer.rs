@@ -79,6 +79,10 @@ impl IROptimizer {
                 TokenType::Gt => Some(Operand::Bool(lv > rv)),
                 TokenType::Le => Some(Operand::Bool(lv <= rv)),
                 TokenType::Ge => Some(Operand::Bool(lv >= rv)),
+                TokenType::Power => {
+                    if *rv < 0 { None }
+                    else { Some(Operand::Int(lv.pow(*rv as u32))) }
+                }
                 _ => None,
             },
             (Operand::Float(lv), Operand::Float(rv)) => match op {
@@ -90,6 +94,7 @@ impl IROptimizer {
                 TokenType::Ne => Some(Operand::Bool(lv != rv)),
                 TokenType::Lt => Some(Operand::Bool(lv < rv)),
                 TokenType::Gt => Some(Operand::Bool(lv > rv)),
+                TokenType::Power => Some(Operand::Float(lv.powf(*rv))),
                 _ => None,
             },
             (Operand::Bool(lv), Operand::Bool(rv)) => match op {
@@ -205,6 +210,20 @@ impl IROptimizer {
                         }
                     }
                 }
+                Instruction::Random(dest, min, max) => {
+                    modified |= Self::replace_operand(min, &constants);
+                    modified |= Self::replace_operand(max, &constants);
+                    if let Some(dk) = Self::get_key(dest) {
+                        constants.remove(&dk);
+                        immutable_vars.remove(&dk);
+                    }
+                }
+                Instruction::Read(dest) | Instruction::Time(dest) => {
+                    if let Some(dk) = Self::get_key(dest) {
+                        constants.remove(&dk);
+                        immutable_vars.remove(&dk);
+                    }
+                }
                 Instruction::Return(val) => {
                     if let Some(v) = val {
                         modified |= Self::replace_operand(v, &constants);
@@ -296,6 +315,20 @@ impl IROptimizer {
                         }
                     }
                 }
+                Instruction::Random(dest, min, max) => {
+                    modified |= Self::replace_operand(min, &copies);
+                    modified |= Self::replace_operand(max, &copies);
+                    if let Some(dk) = Self::get_key(dest) {
+                        copies.remove(&dk);
+                        copies.retain(|_, v| Self::get_key(v) != Some(dk.clone()));
+                    }
+                }
+                Instruction::Time(dest) | Instruction::Read(dest) => {
+                    if let Some(dk) = Self::get_key(dest) {
+                        copies.remove(&dk);
+                        copies.retain(|_, v| Self::get_key(v) != Some(dk.clone()));
+                    }
+                }
                 Instruction::Label(_) | Instruction::FuncStart(_, _, _) => { copies.clear(); }
                 _ => {}
             }
@@ -312,6 +345,7 @@ impl IROptimizer {
                 Instruction::Assign(_, src) | Instruction::Unary(_, _, src) => Self::mark_used(src, &mut used),
                 Instruction::Binary(_, _, l, r) => { Self::mark_used(l, &mut used); Self::mark_used(r, &mut used); }
                 Instruction::IfTrue(cond, _) | Instruction::IfFalse(cond, _) | Instruction::Param(cond) => Self::mark_used(cond, &mut used),
+                Instruction::Random(_, min, max) => { Self::mark_used(min, &mut used); Self::mark_used(max, &mut used); }
                 Instruction::Return(val) => { if let Some(v) = val { Self::mark_used(v, &mut used); } }
                 Instruction::Print(args) => { for arg in args { Self::mark_used(arg, &mut used); } }
                 _ => {}
@@ -329,6 +363,9 @@ impl IROptimizer {
                 Instruction::Binary(dest, op, _, _) => {
                     if *op == TokenType::AssignOp { false }
                     else { Self::get_key(dest).map_or(false, |key| !used.contains(&key)) }
+                }
+                Instruction::Random(dest, _, _) | Instruction::Time(dest) => {
+                    Self::get_key(dest).map_or(false, |key| !used.contains(&key))
                 }
                 Instruction::Declare(_, name, _) => !used.contains(name),
                 _ => false,

@@ -36,6 +36,9 @@ impl Lexer {
         keywords.insert("for".to_string(), TokenType::For);
         keywords.insert("default".to_string(), TokenType::Default);
         keywords.insert("case".to_string(), TokenType::Case);
+        keywords.insert("read".to_string(), TokenType::Read);
+        keywords.insert("time".to_string(), TokenType::Time);
+        keywords.insert("random".to_string(), TokenType::Random);
 
         Lexer {
             input: source.chars().collect(),
@@ -210,6 +213,7 @@ impl Lexer {
                 "--" => Some(TokenType::Decrement),
                 "<<" => Some(TokenType::BitLShift),
                 ">>" => Some(TokenType::BitRShift),
+                "**" => Some(TokenType::Power),
                 _ => None,
             };
 

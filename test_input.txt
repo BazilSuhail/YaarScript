@@ -13,6 +13,18 @@ void print_separator(int count) {
 }
 
 main {
+    // Example of the new features:
+    print("Enter Number: ");
+
+    int base = read();
+    int power = 3;
+    print("Power for ", base, " is ", base ** power);
+
+    int start = time();
+    print("\n", random(1, 100));
+    int end = time();
+    print("\nTime taken: ", end - start);
+
     print("--- 🚀 THE ULTIMATE LANGUAGE POWER TEST ---\n");
 
     // 1. The Numerical Diamond (Nested For Loops)
@@ -65,7 +77,7 @@ main {
     int status_color = GREEN;
     
     switch (status_color) {
-        case RED:   print("SYSTEM FATAL (RED)\n"); break;
+        case RED:   print("SYSTEM FATALcls (RED)\n"); break;
         case GREEN: print("SYSTEM OPTIMAL (GREEN)\n"); break;
         case BLUE:  print("SYSTEM RECOVERY (BLUE)\n"); break;
     }

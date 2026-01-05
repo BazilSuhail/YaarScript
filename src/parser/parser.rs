@@ -72,9 +72,10 @@ enum Precedence {
     BitwiseTerm = 6,
     Term = 7,
     Factor = 8,
-    Unary = 9,
-    Postfix = 10,
-    Call = 11,
+    Power = 9,
+    Unary = 10,
+    Postfix = 11,
+    Call = 12,
 }
 
 pub struct Parser {
@@ -183,6 +184,7 @@ impl Parser {
                 | TokenType::BitLShift | TokenType::BitRShift => Precedence::BitwiseTerm,
             TokenType::Plus | TokenType::Minus => Precedence::Term,
             TokenType::Multiply | TokenType::Divide | TokenType::Modulo => Precedence::Factor,
+            TokenType::Power => Precedence::Power,
             TokenType::Increment | TokenType::Decrement => Precedence::Postfix,
             TokenType::LParen => Precedence::Call,
             _ => Precedence::Lowest,
@@ -286,6 +288,9 @@ impl Parser {
             TokenType::Minus | TokenType::Not | TokenType::Increment | TokenType::Decrement => {
                 self.parse_unary_expression()
             }
+            TokenType::Read => self.parse_read_expression(),
+            TokenType::Time => self.parse_time_expression(),
+            TokenType::Random => self.parse_random_expression(),
             _ => Err(ParseError::new(
                 ParseErrorType::ExpectedExpr,
                 self.current_token().clone(),
@@ -297,10 +302,11 @@ impl Parser {
         match self.current_token().token_type {
             TokenType::AssignOp | TokenType::Plus | TokenType::Minus
             | TokenType::Multiply | TokenType::Divide | TokenType::Modulo
-            | TokenType::EqualOp | TokenType::Ne | TokenType::Lt | TokenType::Gt
-            | TokenType::Le | TokenType::Ge | TokenType::And | TokenType::Or
-            | TokenType::BitAnd | TokenType::BitOr | TokenType::BitXor
-            | TokenType::BitLShift | TokenType::BitRShift => self.parse_binary_expression(left),
+            | TokenType::Power | TokenType::EqualOp | TokenType::Ne 
+            | TokenType::Lt | TokenType::Gt | TokenType::Le | TokenType::Ge 
+            | TokenType::And | TokenType::Or | TokenType::BitAnd 
+            | TokenType::BitOr | TokenType::BitXor | TokenType::BitLShift 
+            | TokenType::BitRShift => self.parse_binary_expression(left),
 
             TokenType::Increment | TokenType::Decrement => self.parse_postfix_unary_expression(left),
 
@@ -453,6 +459,35 @@ impl Parser {
             args,
             line: call_token.line,
             column: call_token.column,
+        }))
+    }
+
+    fn parse_read_expression(&mut self) -> Result<ASTNode, ParseError> {
+        let token = self.advance();
+        self.expect(TokenType::LParen)?;
+        self.expect(TokenType::RParen)?;
+        Ok(ASTNode::ReadExpr(ReadExpr { line: token.line, column: token.column }))
+    }
+
+    fn parse_time_expression(&mut self) -> Result<ASTNode, ParseError> {
+        let token = self.advance();
+        self.expect(TokenType::LParen)?;
+        self.expect(TokenType::RParen)?;
+        Ok(ASTNode::TimeExpr(TimeExpr { line: token.line, column: token.column }))
+    }
+
+    fn parse_random_expression(&mut self) -> Result<ASTNode, ParseError> {
+        let token = self.advance();
+        self.expect(TokenType::LParen)?;
+        let min = self.parse_expression(Precedence::Lowest)?;
+        self.expect(TokenType::Comma)?;
+        let max = self.parse_expression(Precedence::Lowest)?;
+        self.expect(TokenType::RParen)?;
+        Ok(ASTNode::RandomExpr(RandomExpr {
+            min: Box::new(min),
+            max: Box::new(max),
+            line: token.line,
+            column: token.column,
         }))
     }
 

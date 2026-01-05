@@ -668,6 +668,10 @@ impl ScopeAnalyzer {
             }
             ASTNode::UnaryExpr(u) => self.analyze_expression(&u.operand),
             ASTNode::CallExpr(c) => self.analyze_call_expr(c),
+            ASTNode::RandomExpr(r) => {
+                self.analyze_expression(&r.min);
+                self.analyze_expression(&r.max);
+            }
             _ => {}
         }
     }

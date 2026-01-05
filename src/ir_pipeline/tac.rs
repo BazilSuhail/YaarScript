@@ -46,6 +46,9 @@ pub enum Instruction {
     FuncStart(String, String, Vec<(String, String)>),
     FuncEnd,
     Print(Vec<Operand>),
+    Read(Operand),
+    Time(Operand),
+    Random(Operand, Operand, Operand),
     Comment(String),
 }
 
@@ -98,6 +101,9 @@ impl fmt::Display for Instruction {
                 let args_str: Vec<String> = args.iter().map(|a| a.to_string()).collect();
                 write!(f, "print {}", args_str.join(", "))
             }
+            Instruction::Read(dest) => write!(f, "{} = read()", dest),
+            Instruction::Time(dest) => write!(f, "{} = time()", dest),
+            Instruction::Random(dest, min, max) => write!(f, "{} = random {}, {}", dest, min, max),
             Instruction::Comment(c) => write!(f, "; {}", c),
         }
     }
@@ -357,6 +363,23 @@ impl TACGenerator {
 
             ASTNode::BlockStmt(d) => { for stmt in &d.body { self.gen_node(stmt); } None }
             ASTNode::ExpressionStmt(d) => { self.gen_node(&d.expr); None }
+            ASTNode::ReadExpr(_) => {
+                let dest = self.new_temp();
+                self.emit(Instruction::Read(dest.clone()));
+                Some(dest)
+            }
+            ASTNode::TimeExpr(_) => {
+                let dest = self.new_temp();
+                self.emit(Instruction::Time(dest.clone()));
+                Some(dest)
+            }
+            ASTNode::RandomExpr(r) => {
+                let dest = self.new_temp();
+                let min = self.gen_node(&r.min)?;
+                let max = self.gen_node(&r.max)?;
+                self.emit(Instruction::Random(dest.clone(), min, max));
+                Some(dest)
+            }
             ASTNode::EnumDecl(d) => { self.emit(Instruction::Comment(format!("Enum {} Defined", d.name))); None }
             _ => None,
         }
