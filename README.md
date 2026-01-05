@@ -44,7 +44,7 @@ The project code is organized to reflect the modular nature of a modern compiler
 ### `src/` Architecture Overview
 | Module / File | Description & Purpose |
 | :--- | :--- |
-| 📁 **`lexer/`** | The front-end scanner. Uses Maximal-Munch logic to tokenize UTF-8 text into language primitives. |
+| **`lexer/`** | The front-end scanner. Uses Maximal-Munch logic to tokenize UTF-8 text into language primitives. |
 | 📁 **`parser/`** | The Syntax Engine. Uses a mix of Recursive Descent (control flow) and Pratt Parsing (expressions). |
 | 📁 **`core/`** | Fundamental data structures, including the AST (Abstract Syntax Tree) nodes and `Token` enums. |
 | 📁 **`semantics/`** | The Middle-End validators. Contains `scope.rs` (Symbol Table) and `type_checker.rs` (Zero-Coercion logic). |
@@ -62,56 +62,33 @@ YaarScript follows an industrial-grade multi-phase compilation architecture, low
 
 ```mermaid
 graph TD
-    classDef file fill:#f9f,stroke:#333,stroke-width:2px;
-    classDef phase fill:#bbf,stroke:#333,stroke-width:2px;
-    classDef data fill:#dfd,stroke:#333,stroke-width:2px;
+    %% Theme-neutral definitions for GitHub Light/Dark compatibility
+    classDef file fill:#334155,stroke:#94a3b8,stroke-width:2px,color:#f8fafc;
+    classDef phase fill:#f1f5f9,stroke:#cbd5e1,stroke-width:2px,color:#1e293b;
+    classDef data fill:#e2e8f0,stroke:#94a3b8,stroke-width:1px,color:#475569;
 
-    Source[test_input.yaar]:::file --> Lexer[1. Lexical Analysis<br/>Maps slang to compiler primitives<br/>Maximal-Munch Algorithm]:::phase
-    Lexer -->|Token Stream| Parser[2. Syntax Analysis<br/>Hybrid Pratt + Recursive Descent<br/>Resolves precedence & binding]:::phase
-    Parser -->|AST| Scope[3. Scope Analyzer<br/>Two-pass symbol collection<br/>LIFO stack-based resolution]:::phase
-    Scope -->|Symbol Table| Type[4. Type Checker<br/>Bottom-up type inference<br/>Strict zero-coercion constraints]:::phase
-    Type -->|Validated AST| TAC[5. IR Generation<br/>Standard Quadruple Form flattening<br/>Intrinsic instruction mapping]:::phase
-    TAC -->|Raw TAC| Opt[6. Multi-Pass Optimizer<br/>Fixed-Point Convergence loop<br/>Folding, copy-propagation, DCE]:::phase
-    Opt -->|Optimized TAC| Exec[7. Execution Engine<br/>In-memory runtime evaluation]:::phase
+    Source[test_input.yaar]:::file --> Lexer[1. Lexical Analysis<br/>Slang Mapping &<br/>Maximal-Munch]:::phase
+    Lexer -->|Token Stream| Parser[2. Syntax Analysis<br/>Hybrid Pratt +<br/>Recursive Descent]:::phase
+    Parser -->|AST| Scope[3. Scope Analyzer<br/>Two-Pass Symbol<br/>Collection]:::phase
+    Scope -->|Symbol Table| Type[4. Type Checker<br/>Bottom-up Inference &<br/>Zero-Coercion]:::phase
+    Type -->|Validated AST| TAC[5. IR Generation<br/>Standard Quadruple<br/>Form Flattening]:::phase
+    TAC -->|Raw TAC| Opt[6. IR Optimization<br/>Fixed-Point<br/>Convergence Loop]:::phase
+    Opt -->|Optimized TAC| Exec[7. Execution Engine<br/>In-memory Runtime<br/>Evaluation]:::phase
     Exec --> Output[Program Output<br/>Console & Volatile IO]:::data
 ```
 
-### 1. Lexical Analysis (Lexer)
-The Lexer converts raw source text into a prioritized stream of Tokens, mapping Urdu slang to compiler primitives.
+The transformation process begins with **Lexical Analysis**, which uses a greedy Maximal-Munch algorithm to map raw source text (including Urdu slang) into prioritized compiler primitives. This token stream is processed by the **Parser** via a Hybrid Model—combining Recursive Descent with Pratt Parsing’s Nud/Led dispatch—to build a structured **Abstract Syntax Tree (AST)**. 
 
-> [!NOTE]
-> Deep dive into the greedy Maximal-Munch algorithm and slang normalization in the [Lexer Architecture Guide](./docs/LEXER.md).
+During **Semantic Analysis**, the **Scope Analyzer** performs Two-Pass Symbol Collection using a LIFO stack to enforce lexical scoping, while the **Type Checker** applies a strict Zero-Coercion Policy to ensure binary compatibility across the tree. The validated AST is then lowered by the **TAC Generator** into **Three-Address Code (TAC)** in Standard Quadruple Form. Finally, the **IR Optimizer** achieves efficiency through a Fixed-Point Convergence Model, applying constant folding and Mark-and-Sweep dead code elimination.
 
-### 2. Syntax Analysis (Parser)
-The Parser builds the Abstract Syntax Tree (AST) using a Hybrid Parsing Model (Recursive Descent + Pratt Parsing).
-
-> [!NOTE]
-> Read about the Nud/Led dispatch logic and EBNF grammar in the [Parser Architecture Guide](./docs/PARSER.md).
-
-### 3. Semantic Analysis (Scope Analyzer)
-The Scope Analyzer enforces lexical scoping rules, identifies symbol overlapping, and constructs a hierarchical Symbol Table.
-
-> [!NOTE]
-> Explore the Two-Pass Symbol Collection and LIFO scope stack in the [Scope Analyzer Guide](./docs/SCOPE_ANALYZER.md).
-
-### 4. Semantic Analysis (Type Checker)
-The Type Checker enforces a strict Zero-Coercion Policy, validating binary compatibility across the AST.
-
-> [!NOTE]
-> Learn about bottom-up type inference and strict casting validation in the [Type Checker Guide](./docs/TYPE_ANALYZER.md).
-
-### 5. IR Generation (TAC Generator)
-The TAC Generator lowers the validated AST into Standard Quadruple Form Three-Address Code (TAC).
-
-> [!NOTE]
-> View how intrinsic functions are safeguarded and control flow is lowered in the [TAC Generation Guide](./docs/TAC_GENERATION.md).
-
-### 6. IR Optimization
-A Fixed-Point Convergence Model applies Constant Folding, Propagation, and Dead Code Elimination.
-
-> [!NOTE]
-> Analyze the cascade effects of the Mark-and-Sweep optimizations in the [IR Optimizer Guide](./docs/IR_OPTIMIZATION.md).
-
+> [!TIP]
+> **Detailed Implementation Guides:**
+> * **Lexer:** [Slang normalization & Maximal-Munch](./docs/LEXER.md)
+> * **Parser:** [Nud/Led dispatch & EBNF grammar](./docs/PARSER.md)
+> * **Scope Analyzer:** [LIFO stack & symbol collection](./docs/SCOPE_ANALYZER.md)
+> * **Type Checker:** [Bottom-up inference & strict casting](./docs/TYPE_ANALYZER.md)
+> * **TAC Generator:** [Control flow lowering & intrinsics](./docs/TAC_GENERATION.md)
+> * **IR Optimizer:** [Mark-and-Sweep & convergence effects](./docs/IR_OPTIMIZATION.md)
 ---
 
 ## Urdu Slang Keywords
