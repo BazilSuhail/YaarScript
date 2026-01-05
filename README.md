@@ -1,162 +1,203 @@
-# 🚀 YaarScript: Industrial-Grade Middle-End Compiler
+# 🚀 YaarScript: an Urdu-Slang Multi-phase Compiler
 
-[![YaarScript Playground](https://img.shields.io/badge/Playground-Live-blueviolet?style=for-the-badge&logo=rocket)](https://yaarscript.netlify.app/)
+[![Online Playground](https://img.shields.io/badge/Playground-YaarScript-blue?style=for-the-badge&logo=javascript)](https://yaarscript.netlify.app/)
 
-**YaarScript** is a high-performance, multi-phase compiler implemented in Rust, targeting a localized Urdu-slang syntax for systems-level logic. Unlike basic interpreters, YaarScript employs an industrial middle-end pipeline, featuring a **Fixed-Point Convergence Optimizer** and a rigorous **Static Type-Checking** engine.
+> A sophisticated multi-phase compiler written in Rust, designed to demonstrate advanced compiler construction techniques through semantic analysis, intermediate representation optimization, and code execution—now with a uniquely fun Urdu-slang flavored syntax.
+
+## 📋 Table of Contents
+
+- [Project Overview](#project-overview)
+- [Architecture & Compilation Pipeline](#architecture--compilation-pipeline)
+- [Urdu Slang Keywords & Traditional Equivalents](#urdu-slang-keywords--traditional-equivalents)
+- [Operator Precedence Table](#operator-precedence-table)
+- [Valid and Invalid Code Examples](#valid-and-invalid-code-examples)
+- [Building & Running](#building--running)
 
 ---
 
-## 🏗️ Architectural Pipeline
+## 🏗️ Architecture & Compilation Pipeline
 
-YaarScript adheres to the classic compiler front-end and middle-end separation. The pipeline ensures that the high-level Urdu abstractions are lowered into an optimized linear Intermediate Representation (IR) before execution.
+YaarScript follows an industrial-grade multi-phase compilation architecture, lowered into an optimized linear Intermediate Representation (IR) before execution.
 
 ```mermaid
-graph LR
-    subgraph Front-End
-    A[.yaar Source] --> B[Lexical Analysis]
-    B --> C[Hybrid Pratt/RD Parser]
-    C --> D[AST Generation]
-    D --> E[Semantic Analysis]
-    E --> F[Scope & Type Verification]
-    end
-
-    subgraph "Middle-End (Optimizer)"
-    G[TAC Generation] --> H{Fixed-Point Loop}
-    H --> I[Constant Folding]
-    H --> J[Copy Propagation]
-    H --> K[Dead Code Elimination]
-    K -->|Δ > 0| H
-    K -->|Δ = 0| L[Final IR Output]
-    end
-
-    subgraph Back-End
-    L --> M[Interpretation Engine]
-    M --> N[Intrinsics Library]
-    N --> O[Stdout/Wasm Output]
-    end
+graph TD
+    Source[test_input.yaar] --> Lexer[1. Lexical Analysis]
+    Lexer -->|Tokens| Parser[2. Syntax Analysis]
+    Parser -->|AST| Scope[3. Scope Analyzer]
+    Scope -->|Symbol Table| Type[4. Type Checker]
+    Type -->|Validated AST| TAC[5. IR Generation]
+    TAC -->|Raw TAC| Opt[6. Multi-Pass Optimizer]
+    Opt -->|Optimized TAC| Exec[7. Execution Engine]
+    Exec --> Output[Program Output]
 ```
 
----
+### 1. Lexical Analysis (Lexer)
+The Lexer converts raw source text into a prioritized stream of Tokens, mapping Urdu slang to compiler primitives.
 
-## 🔬 The Middle-End: Fixed-Point Convergence
+> [!NOTE]
+> Deep dive into the greedy Maximal-Munch algorithm and slang normalization in the [Lexer Architecture Guide](./docs/LEXER.md).
 
-The core of YaarScript's efficiency lies in its `IROptimizer`. The optimization engine utilizes a **Convergence Model**, repeatedly applying multiple analysis passes until the Intermediate Representation reaches a stable state (where the difference between passes $\Delta = 0$).
+### 2. Syntax Analysis (Parser)
+The Parser builds the Abstract Syntax Tree (AST) using a Hybrid Parsing Model (Recursive Descent + Pratt Parsing).
 
-### Optimization Pass Specifications
+> [!NOTE]
+> Read about the Nud/Led dispatch logic and EBNF grammar in the [Parser Architecture Guide](./docs/PARSER.md).
 
-1.  **Multi-Type Constant Folding**: Resolves arithmetic and logical expressions at compile-time. Supports folding of `number`, `float`, and `faisla` types, including complex power operations.
-2.  **Global/Local Propagation**: Propagates constant literals across basic blocks.
-3.  **Algebraic Simplification**: Implements mathematical identities to prune redundant operations:
-    *   $x + 0 \equiv x$
-    *   $x \times 1 \equiv x$
-    *   $x \times 0 \equiv 0$
-    *   $x - x \equiv 0$
-4.  **Dead Code Elimination (DCE)**: Prunes assignments and computations whose values are not consumed by any side-effecting operation (like `bolo`).
+### 3. Semantic Analysis (Scope Analyzer)
+The Scope Analyzer enforces lexical scoping rules, identifies symbol overlapping, and constructs a hierarchical Symbol Table.
 
-### Implementation: The Convergence Loop
-```rust
-pub fn run(&mut self) {
-    let mut modified = true;
-    let mut iterations = 0;
-    const MAX_ITERATIONS: usize = 10;
+> [!NOTE]
+> Explore the Two-Pass Symbol Collection and LIFO scope stack in the [Scope Analyzer Guide](./docs/SCOPE_ANALYZER.md).
 
-    // Fixed-point iteration: run until the IR is stable (Δ = 0)
-    while modified && iterations < MAX_ITERATIONS {
-        modified = false;
-        iterations += 1;
+### 4. Semantic Analysis (Type Checker)
+The Type Checker enforces a strict Zero-Coercion Policy, validating binary compatibility across the AST.
 
-        modified |= self.constant_folding();
-        modified |= self.constant_propagation();
-        modified |= self.copy_propagation();
-        modified |= self.peephole_optimization();
-        modified |= self.dead_code_elimination_pass();
-    }
-}
-```
+> [!NOTE]
+> Learn about bottom-up type inference and strict casting validation in the [Type Checker Guide](./docs/TYPE_ANALYZER.md).
+
+### 5. IR Generation (TAC Generator)
+The TAC Generator lowers the validated AST into Standard Quadruple Form Three-Address Code (TAC).
+
+> [!NOTE]
+> View how intrinsic functions are safeguarded and control flow is lowered in the [TAC Generation Guide](./docs/TAC_GENERATION.md).
+
+### 6. IR Optimization
+A Fixed-Point Convergence Model applies Constant Folding, Propagation, and Dead Code Elimination.
+
+> [!NOTE]
+> Analyze the cascade effects of the Mark-and-Sweep optimizations in the [IR Optimizer Guide](./docs/IR_OPTIMIZATION.md).
 
 ---
 
-## ⚡ The Power Operator (`**`)
+## 🌍 Urdu Slang Keywords & Traditional Equivalents
 
-YaarScript implements a first-class **Power Operator** (`**`), integrated directly at the Lexer level as a `TokenType::Power`. It occupies **Precedence Level 9**, sitting strictly above standard binary multiplicative operators to handle right-associative mathematical expectations.
-
-| Level | Description | Operators |
-| :--- | :--- | :--- |
-| **8** | Multiplicative | `*`, `/`, `%` |
-| **9** | **Exponentiation** | **`**`** |
-| **10** | Unary | `-`, `!`, `++`, `--` |
-
-### Backend Logic
-*   **Integers**: Leverages `i64::pow(u32)` with compile-time overflow checks.
-*   **Floats**: Leverages `f64::powf(f64)` for handling fractional exponents.
-
----
-
-## 🌍 Urdu-Native Semantic Mapping
-
-YaarScript provides a semantic mapping layer that translates localized Urdu slang into robust systems logic. This allows developers to write low-level code using expressive, native terminology without sacrificing type safety.
+YaarScript Maps localized terminology directly to robust systems logic.
 
 | YaarScript Keyword | C-Equivalent | Purpose |
-| :--- | :--- | :--- |
-| `number` | `int64_t` | Signed 64-bit integer |
-| `faisla` | `bool` | Boolean type |
-| `sahi` | `true` | Boolean literal true |
-| `galat` | `false` | Boolean literal false |
+|--------------------|--------------|---------|
+| `number` | `int64_t` | 64-bit signed integer |
+| `float` | `double` | 64-bit floating point |
+| `faisla` | `bool` | Boolean value |
+| `lafz` | `char*` | String primitive |
+| `khaali` | `void` | No return value |
+| `pakka` | `const` | Immutable constant |
+| `yaar` | `main` | Entry point block |
 | `agar` | `if` | Conditional branch |
 | `warna` | `else` | Alternative branch |
 | `jabtak` | `while` | Loop continuation |
+| `dohrao` | `for` | Iterative loop |
+| `intekhab` | `switch` | Multi-way branching |
 | `bas_kar` | `break` | Scope exit |
-| `ittifaq` | `rand()` | Entropy source |
+| `wapsi` | `return` | Function return |
+| `qism` | `enum` | Enumeration type |
+| `bolo` | `printf` | Console Output |
+| `suno` | `scanf` | Console Input |
+| `sahi` | `true` | Boolean true |
+| `galat` | `false` | Boolean false |
 
 ---
 
-## 🛡️ Intrinsic Safeguarding
+## 📊 Operator Precedence Table
 
-To prevent the optimizer from incorrectly pruning vital system calls, every intrinsic function has a dedicated instruction in the Three-Address Code (TAC) pipeline.
+The parser natively incorporates the **Power Operator** with high precedence.
 
-*   **`READ` (suno)**: Pauses execution for standard input.
-*   **`TIME` (waqt)**: Retrieves high-resolution system timestamps.
-*   **`RANDOM` (ittifaq)**: Interacts with the Rust `rand` crate to fetch entropy.
-
-> [!IMPORTANT]
-> These intrinsics are marked as **Side-Effect Producing** (volatile) in the DCE pass to ensure they are never optimized away, even if their return values appear unused in the immediate local scope.
+| Level | Operators | Associativity | Example |
+|-------|-----------|---------------|---------|
+| 1 | `=` | Right-to-left | `a = b = c` |
+| 2 | `\|\|` | Left-to-right | `a \|\| b` |
+| 3 | `&&` | Left-to-right | `a && b` |
+| 4 | `==`, `!=` | Left-to-right | `a == b` |
+| 5 | `<`, `>`, `<=`, `>=` | Left-to-right | `a < b` |
+| 6 | `&`, `\|`, `^`, `<<`, `>>` | Left-to-right | `a & b` |
+| 7 | `+`, `-` | Left-to-right | `a + b` |
+| 8 | `*`, `/`, `%` | Left-to-right | `a * b` |
+| 9 | **`**` (Power)** | **Left-to-right** | `a ** b` |
+| 10 | `-`, `!`, `++`, `--` (prefix) | Right-to-left | `!-x` |
+| 11 | `++`, `--` (postfix) | Left-to-right | `x++` |
+| 12 | `()` | Highest | `f(x)` |
 
 ---
 
-## 💻 Code Evidence
+## 💻 Valid and Invalid Code Examples
 
-### YaarScript: Exponentiation & Entropy
+### ✅ Correct Code Snippet (from `tests/type/valid.yaar`)
+
 ```rust
 yaar {
-    number base = 2;
-    number exp = 10;
+    number w = 10;
+    number h = 20;
+
+    dohrao (number i = 0; i < 5; i++) {
+        agar (i == 3) {
+            bas_kar; 
+        }
+    }
+
+    faisla flag = (w > 5) && (h < 50);
+    faisla check = !flag;
     
-    // Power Operator (Precedence 9)
-    number result = base ** exp; // Eval: 1024
+    number result = w ** 2; // Power operator test
+    bolo("Computed successfully! ", result);
+}
+```
+
+**Expected Output:**
+```text
+0
+1
+2
+Computed successfully! 100
+```
+
+### ❌ Incorrect Code Snippet (from `tests/type/error.yaar`)
+
+Shows strict type safety catching errors before execution.
+
+```rust
+khaali invalidVar; // ERROR: 1. ErroneousVarDecl
+
+khaali voidFunc() {
+    bolo("hello");
+}
+
+yaar {
+    number i = 10;
+    float f = 3.14;
     
-    // System Intrinsic: Random range [1, 100]
-    number roll = ittifaq(1, 100);
+    // 3. FnCallParamType
+    voidFunc(f); 
     
-    agar (roll > 50) {
-        bolo("High Roll: ", roll);
-    } warna {
-        bolo("Low Roll: ", roll);
+    // 5. ExpressionTypeMismatch
+    i = 3.14; 
+    
+    // 7. NonBooleanCondStmt
+    agar (i) { 
+        bolo("wont work");
     }
 }
 ```
 
----
-
-## ⚙️ Technical Specifications
-
-*   **Compiler Backend**: Rust 2024 Stable.
-*   **Intermediate Representation**: Linear Three-Address Code (TAC) with symbolic labels.
-*   **Memory Management**: Automatic stack-based variable allocation within the execution engine.
-*   **Dependencies**: 
-    *   `rand`: Cryptographically secure pseudorandom number generation.
-    *   `colored`: Terminal-based AST and IR visualization.
+**Compiler Output (Caught at Semantic Stage):**
+```text
+[Type Error] Variable invalidVar cannot be of type void
+[Type Error] Function 'voidFunc' expects 0 arguments, but got 1
+[Type Error] Invalid assignment: Cannot assign type 'float' to variable 'i' of type 'int'
+[Type Error] Condition must be a boolean expression
+```
 
 ---
 
-> [!TIP]
-> Use the `--release` flag when compiling the compiler itself to maximize the speed of the Optimizer's Fixed-Point loop.
+## 🛠️ Building & Running
+
+### Prerequisites
+- [Rust & Cargo](https://rustup.rs/) (2024 Edition)
+
+### Build the Compiler
+```bash
+cargo build --release
+```
+
+### Run a Program
+```bash
+cargo run -- tests/type/valid.yaar
+```

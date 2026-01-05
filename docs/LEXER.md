@@ -79,3 +79,37 @@ number $cost = 100; // ERROR: Unexpected character '$' at [1:8]
 
 > [!CAUTION]
 > A lexical error represents a critical failure in the front-end. The Lexer will complete the scan to identify all possible illegal characters but will flag the session as un-parsable.
+
+---
+
+## 💻 Test Case Integrations
+
+### ✅ Valid Lexical Tokenization (from `tests/type/valid.yaar`)
+```rust
+dohrao (number i = 0; i < 5; i++) {
+    agar (i == 3) {
+        bas_kar; 
+    }
+}
+```
+**Expected Lexer Output (Abbreviated):**
+```text
+Token(T_FOR, "dohrao")
+Token(T_LPAREN, "(")
+Token(T_INT, "number")
+Token(Ident, "i")
+Token(T_ASSIGNOP, "=")
+Token(IntLit, "0")
+...
+Token(T_BREAK, "bas_kar")
+```
+
+### ❌ Invalid Lexical Sequence (Hypothetical Error)
+While `tests/type/error.yaar` primarily targets semantic errors, an invalid character halts lexical scanning immediately:
+```rust
+number @invalid = 10;
+```
+**Expected Output:**
+```text
+[Lexer Error] Unexpected character '@' at line 1, column 8
+```

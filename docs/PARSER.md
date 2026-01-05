@@ -97,3 +97,40 @@ If the parser meets a token that violates the EBNF grammar, it throws a `ParseEr
 
 > [!CAUTION]
 > Our front-end stops at the first encountered Parse Error to prevent Cascading Junk Errors from overwhelming the user output.
+
+---
+
+## 💻 Test Case Integrations
+
+### ✅ Valid AST Generation (from `tests/type/valid.yaar`)
+```rust
+number calculateArea(number width, number height) {
+    number area = width * height;
+    wapsi area;
+}
+```
+**Expected Parser Output (AST Hierarchy):**
+```text
+FunctionDecl(number, "calculateArea")
+  Param(number, "width")
+  Param(number, "height")
+  Block
+    VarDecl(number, "area")
+      BinaryExpr(*)
+        Identifier("width")
+        Identifier("height")
+    ReturnStmt
+      Identifier("area")
+```
+
+### ❌ Syntax Error Halting Example
+An unclosed boundary prevents the AST from executing further compilation steps:
+```rust
+yaar {
+    number i = 0;
+// EOF before }
+```
+**Expected Output:**
+```text
+[Parse Error] UnclosedBlock: Expected '}', found EOF
+```

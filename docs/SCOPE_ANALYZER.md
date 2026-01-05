@@ -99,3 +99,37 @@ pub fn lookup_symbol(&self, name: &str) -> Option<&SymbolInfo> {
 
 > [!CAUTION]
 > If Pass 2 encounters a `SymbolNotFoundError`, the compiler halts. This prevents the Type Checker from attempting to infer types for undefined variables.
+
+---
+
+## 💻 Test Case Integrations
+
+### ✅ Scope Resolution (from `tests/type/valid.yaar`)
+The analyzer cleanly registers the global identifier and permits the local definition.
+```rust
+number globalId = 100;
+
+number calculateArea(number width, number height) {
+    number area = width * height;
+    wapsi area;
+}
+```
+**Expected Analyzer Output:**
+```text
+[Scope Analyzer] Pass 1 complete: Collected 1 global variables and 1 functions.
+[Scope Analyzer] Pass 2 complete: 0 scope collision errors found.
+[Scope Analyzer] Symbol Table securely flattened for Type Analysis.
+```
+
+### ❌ Scope Error Rejection (from `tests/type/error.yaar`)
+Attempting to jump the scope isolation or use undeclared variables:
+```rust
+yaar {
+    // 1. UndeclaredVariableAccessed
+    khaali invalidVar = undefined_symbol + 5;
+}
+```
+**Expected Output:**
+```text
+[Scope Error] UndeclaredVariableAccessed: Symbol 'undefined_symbol' not found in current or outer scope at [Line 3, Col 25]
+```

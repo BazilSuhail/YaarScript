@@ -96,3 +96,43 @@ fn infer(&mut self, node: &ASTNode) -> TypeNode {
     }
 }
 ```
+
+---
+
+## 💻 Test Case Integrations
+
+### ✅ Strict Type Compliance (from `tests/type/valid.yaar`)
+The type engine guarantees matching structures:
+```rust
+float myScore = 0.85;
+faisla result = isPassing(myScore); // Requires float
+
+agar (result) {
+    bolo("Test Passed"); // String output
+}
+```
+**Expected Type Checker Output:**
+```text
+[Type Checker] Strict verification started.
+[Type Checker] Signature analysis for 'isPassing': Match (float)
+[Type Checker] Condition analysis inside 'agar': Match (faisla)
+[Type Checker] Target passed type verification successfully.
+```
+
+### ❌ Incompatible Casting (from `tests/type/error.yaar`)
+The engine rejects implicit numeric coercions and missing boolean branches:
+```rust
+number i = 10;
+float f = 3.14;
+
+// 3. FnCallParamType
+add(10, f);
+
+// 5. ExpressionTypeMismatch
+i = 3.14; 
+```
+**Expected Output:**
+```text
+[Type Error] Arg 2 type mismatch. Function 'add' expects 'number', got 'float'
+[Type Error] Invalid assignment: Cannot assign type 'float' to variable 'i' of type 'number'
+```

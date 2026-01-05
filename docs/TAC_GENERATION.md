@@ -93,3 +93,40 @@ agar (x > 0) { ... } warna { ... }
 
 > [!CAUTION]
 > If a jump target (Label) is not emitted during the generation phase, the execution engine will crash. The generator ensures that every `goto` points to a strictly defined `Label`.
+
+---
+
+## 💻 Test Case Integrations
+
+### ✅ Instruction Generation (from `tests/type/valid.yaar`)
+```rust
+faisla flag = (w > 5) && (area < 500);
+```
+**Expected TAC Generation Iteration:**
+```nginx
+t0 = w Gt 5
+t1 = area Lt 500
+t2 = t0 And t1
+faisla flag = t2
+```
+
+### ✅ Flow Lowering Logic (from `tests/type/valid.yaar`)
+```rust
+dohrao (number i = 0; i < 5; i++) {
+    agar (i == 3) { bas_kar; }
+}
+```
+**Expected Lowered Result (Loop & Break handling):**
+```nginx
+number i = 0
+L_START:
+t0 = i Lt 5
+ifFalse t0 goto L_END
+t1 = i EqualOp 3
+ifFalse t1 goto L_SKIP
+goto L_END   ; From bas_kar;
+L_SKIP:
+i = i Plus 1
+goto L_START
+L_END:
+```

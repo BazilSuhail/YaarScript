@@ -113,3 +113,31 @@ fn dead_code_elimination_pass(&mut self) -> bool {
 
 > [!CAUTION]
 > If the `MAX_ITERATIONS` limit is reached without convergence, the compiler will exit with the current state of IR. While rare, this prevents infinite optimization loops in complex cyclic TAC.
+
+---
+
+## 💻 Test Case Integrations
+
+### ✅ Full Iterative Pass Example (based on `valid.yaar` expressions)
+The Fixed-Point engine handles nested deterministic math, resolving operations automatically.
+```rust
+number w = 10;
+number sum = 10 + w;
+number double = sum * 2;
+bolo(double);
+```
+**Pre-Optimization TAC (Raw Generation):**
+```nginx
+number w = 10
+t0 = 10 Plus w
+number sum = t0
+t1 = sum Multiply 2
+number double = t1
+Print double
+```
+
+**Post-Optimization TAC (Convergence = Reached):**
+```nginx
+Print 40
+```
+> ***Optimizer Note***: *Pass 1 folded constants, Pass 2 propagated `w` as `10`, followed by further folding. Because the variables themselves were not invoked after printing, the Dead Code Elimination pass scrubbed the unneeded assignments.*
