@@ -1,0 +1,10 @@
+yaar {
+    number x = -4;
+    agar (x > 0) {
+        bolo("x is positive\n");
+    } warna agar (x < 0) {
+        bolo("x is negative\n");
+    } warna {
+        bolo("x is zero\n");
+    }
+}

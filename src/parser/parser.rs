@@ -693,7 +693,12 @@ impl Parser {
 
         let if_body = self.parse_block()?;
         let else_body = if self.match_token(TokenType::Else) {
-            self.parse_block()?
+            if self.check(TokenType::If) {
+                // Else If case: parse the following if statement and wrap it in a Vec
+                vec![self.parse_if_statement()?]
+            } else {
+                self.parse_block()?
+            }
         } else {
             Vec::new()
         };
