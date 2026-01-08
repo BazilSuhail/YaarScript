@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/Lord-Entity/Bazil-Suhail-Repos/main/YaarScript/yaarscript-github-readme.webp" alt="YaarScript Pro Banner" width="800">
+  <img src="https://raw.githubusercontent.com/Lord-Entity/Bazil-Suhail-Repos/main/YaarScript/yaarscript-github-readme.webp" alt="YaarScript Pro Banner" width="450">
 </div>
 
 <div align="center">
@@ -20,6 +20,20 @@
 #### YaarScript: an Urdu-Slang Multi-phase Compiler
 
 > **YaarScript** is an educational passion project I built as a solo developer. It is a full-fledged, multi-phase compiler written in Rust, designed to demonstrate advanced compiler construction techniques, such as semantic analysis, intermediate representation optimization, and bytecode execution, while utilizing a uniquely fun, Urdu-infused slang syntax to make learning systems programming more relatable and engaging.
+
+
+
+> [!TIP]
+> **Quick Links:**
+> * **Official Website:** [yaarscript.netlify.app](https://yaarscript.netlify.app)
+> * **Online Playground:** [Try YaarScript in the Browser](https://yaarscript.netlify.app/editor)
+> * **Documentation:** [Read the Docs](https://yaarscript.netlify.app/docs)
+
+> [!NOTE]
+> **VS Code Integration:**
+> * **VS Code Extension:** [Install YaarScript Support](vscode:extension/9b44e0ea-284e-6202-b075-e936e0da1bff.yaarscript) — *Full language support and syntax highlighting.*
+> * **Code Snippets:** [Install Snippets](vscode:extension/9b44e0ea-284e-6202-b075-e936e0da1bff.yaarscript-snippets) — *Boost your workflow with pre-defined templates.*
+> * **GitHub Repo:** [View Source Code](https://github.com/BazilSuhail/yaarscript-vscode-extensions) — *Contribute or report issues.*
 
 ## Table of Contents
 
