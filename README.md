@@ -35,6 +35,20 @@
 > * **Code Snippets:** [Install Snippets](vscode:extension/9b44e0ea-284e-6202-b075-e936e0da1bff.yaarscript-snippets) — *Boost your workflow with pre-defined templates.*
 > * **GitHub Repo:** [View Source Code](https://github.com/BazilSuhail/yaarscript-vscode-extensions) — *Contribute or report issues.*
 
+> [!IMPORTANT]
+> #### Installation (Windows Only)
+> You can install the **YaarScript CLI Toolchain** instantly across your workstation using a single automated installation command. 
+> Open a **Windows PowerShell** window (no administrator privileges required) and run the following command:
+> ```powershell
+> irm https://yaarscript.netlify.app/install.ps1 | iex
+> ```
+
+<div align="center">
+  <img src="https://raw.githubusercontent.com/BazilSuhail/YaarScript/yaarscript-cli/release/yaar-cli.png" alt="YaarScript-cli Banner">
+</div>
+
+
+
 ## Table of Contents
 
 - [Features](#features)
