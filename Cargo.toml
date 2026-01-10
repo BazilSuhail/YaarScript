@@ -5,3 +5,6 @@ edition = "2024"
 
 [dependencies]
 rand = "0.8"
+clap = { version = "4", features = ["derive"] }
+colored = "2"
+indicatif = "0.17"
